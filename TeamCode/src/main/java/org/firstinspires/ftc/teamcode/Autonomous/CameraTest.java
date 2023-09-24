@@ -36,6 +36,12 @@ public class CameraTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+    waitForStart();
+
+    //see function
+    initTfod();
+    //see function
+    tfodtelemetry();
 
     }
 
