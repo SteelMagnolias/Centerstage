@@ -51,8 +51,6 @@ public class AprilTagTest extends LinearOpMode {
         builder.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary());
         //set output units
         builder.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES);
-        //calibration?????????
-        builder.setLensIntrinsics(578.272, 578.272, 402.145, 221.506);
         //create custom apriltag
         aprilTag = builder.build();
 

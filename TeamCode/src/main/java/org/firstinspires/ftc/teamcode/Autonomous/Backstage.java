@@ -48,6 +48,18 @@ public class Backstage extends LinearOpMode{
             REVERSE = -1;
         }
 
+        telemetry.addData("leftFront", leftFront.getPower());
+        telemetry.addData("rightFront", rightFront.getPower());
+        telemetry.addData("leftBack", leftBack.getPower());
+        telemetry.addData("rightBack", rightBack.getPower());
+        telemetry.addData("intake", intake.getPower());
+        telemetry.addData("hook", hook.getPower());
+        telemetry.addData("horizontalArm", horizontalArm.getPower());
+        telemetry.addData("verticalArm", verticalArm.getPower());
+
+        telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
+
+
         waitForStart();
         if(spikeMark==1){
             // left
@@ -89,6 +101,8 @@ public class Backstage extends LinearOpMode{
         drive(drivePow, drivePow, drivePow, drivePow, 2000);
         // drop yellow pixel
         dropPixel();
+
+        telemetry.update();
     }
 
     public void drive (double lf, double rf, double lb, double rb, double time){
