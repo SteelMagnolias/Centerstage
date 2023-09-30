@@ -26,20 +26,47 @@ public class CameraTest extends LinearOpMode {
     private VisionPortal visionPortal;
 
     //pick a custom model to use
-    private static final String TFOD_MODEL_ASSET = "file name";
+    private static final String TFOD_MODEL_ASSET = "change this when have custom model";
 
     //name of objects identified
     private static final String[] LABELS = {
             "heart"
     };
 
-
+    //spike marker variable
+    int spikeMark=0;
+    //cord x variable
+    double x;
+    //cord y variable
+    double y;
     @Override
     public void runOpMode() throws InterruptedException {
-//see function
+        //see function
         initTfod();
         //see function
         tfodtelemetry();
+
+        // determin spike mark
+        //if x is left of set value
+        if (x<20){
+            //set left
+            spikeMark = 1;
+        }
+        //if x is in between set values
+        else if (20<x & x<40) {
+            //set center
+            spikeMark = 2;
+        }
+        //if more than set value
+        else if (x>40){
+            //set right
+            spikeMark = 3;
+        }
+        //if nothing
+        else{
+            //set right
+            spikeMark = 3;
+        }
 
         waitForStart();
 
@@ -97,9 +124,9 @@ public class CameraTest extends LinearOpMode {
         for (Recognition recognition : currentRecognitions) {
             //cordinents
             //average x cordinents
-            double x = (recognition.getLeft() + recognition.getRight()) / 2 ;
+             x = (recognition.getLeft() + recognition.getRight()) / 2 ;
            //average y cordinents
-            double y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+             y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
 
             //add telemetry
             //label and regignition %
