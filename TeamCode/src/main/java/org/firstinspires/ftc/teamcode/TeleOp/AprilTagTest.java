@@ -26,13 +26,14 @@ public class AprilTagTest extends LinearOpMode {
     private VisionPortal visionPortal;
 
     public void runOpMode() {
-
-        waitForStart();
         // initiate apriltag see function for more
         initAprilTag();
-        //send telemetry see function for more
-        aprilTagTelemetry();
 
+        waitForStart();
+        while (true) {
+            //send telemetry see function for more
+            aprilTagTelemetry();
+        }
     }
 
     private void initAprilTag(){

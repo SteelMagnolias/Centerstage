@@ -36,12 +36,12 @@ public class CameraTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-    waitForStart();
+//see function
+        initTfod();
+        //see function
+        tfodtelemetry();
 
-    //see function
-    initTfod();
-    //see function
-    tfodtelemetry();
+        waitForStart();
 
     }
 
@@ -108,6 +108,8 @@ public class CameraTest extends LinearOpMode {
             telemetry.addData("Position of ", recognition.getLabel(), "%.0f / %.0f", x, y);
             //label and size
             telemetry.addData("Size of ", recognition.getLabel(), "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
+            //update telemetry
+            telemetry.update();
         }
     }
 }
