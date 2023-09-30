@@ -9,24 +9,24 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 public class Backstage extends LinearOpMode{
 
     // declare motors
-    DcMotor leftFront;
-    DcMotor rightFront;
-    DcMotor leftBack;
-    DcMotor rightBack;
-    DcMotor intake;
-    DcMotor hook;
-    DcMotor horizontalArm;
-    DcMotor verticalArm;
+    private DcMotor leftFront;
+    private DcMotor rightFront;
+    private DcMotor leftBack;
+    private DcMotor rightBack;
+    private DcMotor intake;
+    private DcMotor hook;
+    private DcMotor horizontalArm;
+    private DcMotor verticalArm;
 
     // declare sensors
-    TouchSensor allianceSwitch; // determines what alliance we are on.
+    private TouchSensor allianceSwitch; // determines what alliance we are on.
 
     // declare integer
-    int spikeMark=0;
-    double drivePow=0.3;
+    private int spikeMark=0;
+    private double drivePow=0.3;
 
     // constant reverse, if we are on the blue side, then will be -1
-    int REVERSE = 1;
+    private int REVERSE = 1;
 
     @Override
     public void runOpMode() throws InterruptedException {
