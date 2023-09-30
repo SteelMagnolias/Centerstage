@@ -3,11 +3,12 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 @Autonomous(name = "Backstage", group="Linear OpMode")
 public class Backstage extends LinearOpMode{
 
-    // declare variables
+    // declare motors
     DcMotor leftFront;
     DcMotor rightFront;
     DcMotor leftBack;
@@ -17,9 +18,15 @@ public class Backstage extends LinearOpMode{
     DcMotor horizontalArm;
     DcMotor verticalArm;
 
+    // declare sensors
+    TouchSensor allianceSwitch; // determines what alliance we are on.
+
     // declare integer
     int spikeMark=0;
-    double drivePow;
+    double drivePow=0.3;
+
+    // constant reverse, if we are on the blue side, then will be -1
+    int REVERSE = 1;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -34,21 +41,28 @@ public class Backstage extends LinearOpMode{
         horizontalArm=hardwareMap.get(DcMotor.class, "horizontalArm");
         verticalArm=hardwareMap.get(DcMotor.class, "verticalArm");
 
+        allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
+
+        if (allianceSwitch.isPressed()) {
+            // if alliance switch is pressed, we are on the blue alliance
+            REVERSE = -1;
+        }
+
         waitForStart();
         if(spikeMark==1){
             // left
             // 90 degree counter-clockwise turn
-            drive(-drivePow,+drivePow,-drivePow,+drivePow, 1000);
+            drive(-drivePow * REVERSE,+drivePow * REVERSE,-drivePow * REVERSE,+drivePow * REVERSE, 1000);
             // strafe right
-            drive(+drivePow, -drivePow, -drivePow, +drivePow, 1000);
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
             // change as you will
             drive(drivePow, drivePow, drivePow, drivePow, 1000);
             // drop purple pixel
             dropPixel();
             // strafe left
-            drive(-drivePow, +drivePow, +drivePow, -drivePow, 1000);
+            drive(-drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
             // 180 degree clockwise turn
-            drive(+drivePow, -drivePow, +drivePow, -drivePow, 1000);
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
 
         }
         else if(spikeMark==2){
@@ -60,16 +74,16 @@ public class Backstage extends LinearOpMode{
             // drive backward
             drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
             // 90 degree clockwise turn
-            drive(+drivePow, -drivePow, +drivePow, -drivePow, 1000);
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
         }
         else{
             // 90 degree clockwise turn
-            drive(+drivePow, -drivePow, +drivePow, -drivePow, 1000);
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
             // change as you will
-            drive(drivePow, drivePow, drivePow, drivePow, 1000);
+            drive(drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, 1000);
             dropPixel();
             // strafe right
-            drive(+drivePow, -drivePow, -drivePow, +drivePow, 1000);
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
         }
         // drive forward 2 square
         drive(drivePow, drivePow, drivePow, drivePow, 2000);
