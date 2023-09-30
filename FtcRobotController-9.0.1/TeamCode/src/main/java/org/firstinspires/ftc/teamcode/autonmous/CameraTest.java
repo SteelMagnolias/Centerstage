@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous;
+package org.firstinspires.ftc.teamcode.autonmous;
 
 //import importaint files from sdk
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
