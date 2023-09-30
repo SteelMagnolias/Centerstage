@@ -1,10 +1,12 @@
 //Idk if this code will even work but its my test ig, pray for meeeeeeeeee
 package org.firstinspires.ftc.teamcode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-/*
+
+@Autonomous(name = "Backstage", group="Linear OpMode")
 public class testPID extends LinearOpMode {
     DcMotorEx motor;
 
@@ -20,7 +22,7 @@ public class testPID extends LinearOpMode {
 
 
     @Override
-    public void runOPmode () throws InterruptedException {
+    public void runOpMode () throws InterruptedException {
         motor =  hardwareMap.get(DcMotorEx.class, "motor");
         motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         waitForStart();
@@ -45,4 +47,3 @@ public class testPID extends LinearOpMode {
 
     }
 }
- */
