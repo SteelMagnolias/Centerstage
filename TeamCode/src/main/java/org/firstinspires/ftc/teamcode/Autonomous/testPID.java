@@ -6,12 +6,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@Autonomous(name = "Backstage", group="Linear OpMode")
+@Autonomous(name = "testPID", group="LinearOpMode")
 public class testPID extends LinearOpMode {
     DcMotorEx motor;
 
     double integralSum = 0;
-    double Kp = 0;
+    double Kp = 10;
     double Ki= 0;
     double Kd = 0;
     //could add another controler if needed

@@ -28,6 +28,7 @@ public class Drive extends OpMode {
 
     public void init() {
         // init
+        leftBack = hardwareMap.get(DcMotor.class, "leftBack"); // in config --> port 1 --> "leftBack"
     }
 
     public void loop(){
