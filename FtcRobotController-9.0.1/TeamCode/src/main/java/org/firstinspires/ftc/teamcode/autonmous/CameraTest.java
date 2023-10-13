@@ -28,11 +28,15 @@ public class CameraTest extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "change this when have custom model";
     //name options of objects identified
     private static final String[] LABELS = {
-            "heart"
+            "heartRed",
+            "heartBlue"
     };
 
     //spike marker variable
     int spikeMark=3;
+
+    //alliance color variable 1 red - 1 blue
+    int alliance=1;
     //cord x variable
     double x;
     //cord y variable
@@ -53,7 +57,7 @@ public class CameraTest extends LinearOpMode {
             // if tfod hasn't been initialized
             else {
                 //say that it doesn't see anything and spike marker is default 3
-                telemetry.addLine("Nothing is seen Spike Marker 3");
+                telemetry.addLine("Didn't load properly Spike Marker 3");
             }
         }
 
@@ -128,6 +132,22 @@ public class CameraTest extends LinearOpMode {
             telemetry.addData("Size of ", recognition.getLabel(), "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
             //update telemetry
             telemetry.update();
+
+            //is the item is a red heart
+            if (recognition.getLabel() .equals("heartRed")) {
+                //set alliance 1 (red)
+                alliance = 1;
+                //add red alliance to telemetry
+                telemetry.addLine("red alliance (1)");
+            }
+            //is the item is a blue heart
+            else if (recognition.getLabel() .equals("heartBlue")) {
+                //set alliance 1 (red)
+                alliance = -1;
+                //add blue alliance to telemetry
+                telemetry.addLine("blue alliance (-1)");
+            }
+
         }
     }
 
