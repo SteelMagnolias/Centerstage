@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -13,18 +14,22 @@ public class Drive extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    private DcMotor intake;
-    private DcMotor hook;
-    private DcMotor horizontalArm;
-    private DcMotor verticalArm;
+    //private DcMotor intake;
+    //private DcMotor hook;
+    //private DcMotor horizontalArm;
+    //private DcMotor verticalArm;
 
     // servos
-    private Servo intakeClaw;
+    //private Servo intakeClaw;
 
     // sensors
-    private DistanceSensor distanceSensor;
+    //private DistanceSensor distanceSensor;
 
     // cameras
+
+    // other variables
+    double pow; // motor power for wheels
+    double theta; // angle of wheels joystick
 
     public void init() {
         // init
@@ -32,14 +37,14 @@ public class Drive extends OpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        hook = hardwareMap.get(DcMotor.class, "hook");
-        horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
-        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        //intake = hardwareMap.get(DcMotor.class, "intake");
+        //hook = hardwareMap.get(DcMotor.class, "hook");
+        //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
+        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
-        intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        //intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
 
-        distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+        //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
 
     public void loop(){
@@ -98,6 +103,84 @@ public class Drive extends OpMode {
         telemetry.addData("x2", x2);
         telemetry.addData("y2", y2);
 
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE );
+
+        // wheels
+        // if in turbo mode, full power, otherwise half
+        if (a1) pow = 1; // turbo mode
+        else pow =0.5;
+        double c = Math.hypot(leftx1, lefty1); // find length of hypot using tan of triangle made by x and y
+        double perct = pow * c; // scale by max power
+        if (c <= .1) perct = 0; // if we are less than .1 power, than just don't move since we are in dead zone
+
+        // determine quandrant
+        if (leftx1 <= 0 && lefty1 >= 0) {
+            theta = Math.atan(Math.abs(leftx1) / Math.abs(lefty1));
+            theta += (Math.PI / 2);
+        } else if (leftx1 < 0 && lefty1 <= 0) {
+            theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
+            theta += (Math.PI);
+        } else if (leftx1 >= 0 && lefty1 < 0) {
+            theta = Math.atan(Math.abs(leftx1) / Math.abs(lefty1));
+            theta += (3 * Math.PI / 2);
+        } else {
+            theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
+        }
+
+        double dir = 1;
+        if (theta >= Math.PI) {
+            theta -= Math.PI;
+            dir = -1;
+        }
+        //if (leftx1 <= 0 && lefty1 >= 0 || leftx1 >= 0 && lefty1 <= 0){
+        //   theta += (Math.PI/2);
+        //}
+
+        telemetry.addData("pow", pow);
+        telemetry.addData("dir", dir);
+        telemetry.addData("c", c);
+        telemetry.addData("theta", theta);
+
+        double fr = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
+        if (fr > 1) fr = 1;
+        if (fr < -1) fr = -1;
+        fr = (perct * fr);
+        if (leftx1 == 0 && lefty1 == 0) fr = 0;
+
+        double bl = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
+        if (bl > 1) bl = 1;
+        if (bl < -1) bl = -1;
+        bl = (perct * bl);
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0;
+
+        double fl = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
+        if (fl > 1) fl = 1;
+        if (fl < -1) fl = -1;
+        fl = (perct * fl);
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0;
+
+        double br = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
+        if (br > 1) br = 1;
+        if (br < -1) br = -1;
+        br = (perct * br);
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0;
+
+        telemetry.addData("fl", fl);
+        telemetry.addData("fr", fr);
+        telemetry.addData("bl", bl);
+        telemetry.addData("br", br);
+
+        telemetry.addData("rlf", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rrf", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rbl", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rbr", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+
+
+        leftFront.setPower(fl + rightx1);
+        leftBack.setPower(bl + rightx1);
+        rightFront.setPower(fr - rightx1);
+        rightBack.setPower(br - rightx1);
     }
 
     public void stop() {
