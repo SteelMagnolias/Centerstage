@@ -128,8 +128,8 @@ public class Drive extends OpMode {
             theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
         }
 
-        double dir = 1;
-        if (theta >= Math.PI) {
+        double dir = 1; // default of direction being forward
+        if (theta >= Math.PI) { // if we have an angle other 180 degrees on unit circle, then direction is backward
             theta -= Math.PI;
             dir = -1;
         }
@@ -142,30 +142,35 @@ public class Drive extends OpMode {
         telemetry.addData("c", c);
         telemetry.addData("theta", theta);
 
-        double fr = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
-        if (fr > 1) fr = 1;
+        // calculate power of front right wheel
+        double fr = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4)); // wheels move on a 45 degree angle, find the ratio of where we want to drive to where we need to be
+        if (fr > 1) fr = 1; // cap speeds at 1 and -1
         if (fr < -1) fr = -1;
-        fr = (perct * fr);
-        if (leftx1 == 0 && lefty1 == 0) fr = 0;
+        fr = (perct * fr); // scale by power
+        if (leftx1 == 0 && lefty1 == 0) fr = 0; // if no joystick movement stop
 
+        // calculate power of back left wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
         double bl = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
-        if (bl > 1) bl = 1;
+        if (bl > 1) bl = 1; // cap speeds at 1 and -1
         if (bl < -1) bl = -1;
-        bl = (perct * bl);
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0;
+        bl = (perct * bl); // scale by power
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0; // if no joystick movement, stop wheel
 
+        // calculate power of front left wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
         double fl = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
-        if (fl > 1) fl = 1;
+        if (fl > 1) fl = 1; // cap powers at 1 and -1
         if (fl < -1) fl = -1;
-        fl = (perct * fl);
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0;
+        fl = (perct * fl); // scale by power
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0; // if no joystick movement, stop wheel
 
+        // calculate power of back right wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
         double br = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
-        if (br > 1) br = 1;
+        if (br > 1) br = 1; // cap powers at 1 and -1
         if (br < -1) br = -1;
-        br = (perct * br);
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0;
+        br = (perct * br); // scale by power
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0; // if no joystick movement, stop
 
+        // add power for each wheel
         telemetry.addData("fl", fl);
         telemetry.addData("fr", fr);
         telemetry.addData("bl", bl);
@@ -177,6 +182,7 @@ public class Drive extends OpMode {
         telemetry.addData("rbr", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
 
 
+        // set power of wheels
         leftFront.setPower(fl + rightx1);
         leftBack.setPower(bl + rightx1);
         rightFront.setPower(fr - rightx1);
