@@ -20,7 +20,7 @@ public class Drive extends OpMode {
     //private DcMotor verticalArm;
 
     // servos
-    //private Servo intakeClaw;
+    private Servo intakeClaw;
 
     // sensors
     //private DistanceSensor distanceSensor;
@@ -30,6 +30,7 @@ public class Drive extends OpMode {
     // other variables
     double pow; // motor power for wheels
     double theta; // angle of wheels joystick
+    boolean clawClosed; // tells whether the claw is closed or not
 
     public void init() {
         // init
@@ -43,6 +44,8 @@ public class Drive extends OpMode {
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
         //intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        //intakeClaw.setPosition(0); // closed
+        clawClosed = true;
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -240,9 +243,63 @@ public class Drive extends OpMode {
             stop();
         }
 
-        // 
+        pow = 0.4;
+        // ball and socket movement (horizontal)
+        if (Math.abs(leftx2) > 0.1) {
+            horizontalArm.setPower(pow * leftx2);
+        }
+        else {
+            // no movement
+            horizontalArm.setPower(0);
+        }
+
+        // ball and socket movement (vertical)
+        if (Math.abs(lefty2) > 0.1) {
+            verticalArm.setPower(pow * lefty2);
+        }
+        else {
+            // no movement
+            verticalArm.setPower(0);
+        }
+
+        pow = 0.9;
+        // intake in out controls
+        if (Math.abs(righty2) > 0.1) {
+            // intake or outtake
+            intake.setPower(pow * righty2);
+        }
+        else {
+            intake.setPower(0);
+        }
 
 
+        // climbing
+        if (y2) {
+            // lift go up
+            automatedLift();
+        }
+
+        if(x2) {
+            // release lift
+            releaseLift();
+        }
+
+        if(b2) {
+            // claw open / close
+            if (clawClosed) {
+                // open claw
+                intakeClaw.setPosition(1);
+            }
+            else if (!clawClosed) {
+                // close claw
+                intakeClaw.setPosition(0);
+            }
+        }
+
+        if (a2) {
+            // throw plane
+            throwPlane();
+        }
     }
 
     public void stop() {
