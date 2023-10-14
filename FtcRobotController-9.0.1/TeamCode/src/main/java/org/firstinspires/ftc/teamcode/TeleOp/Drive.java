@@ -38,6 +38,10 @@ public class Drive extends OpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+
+        // reverse motors
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
+        rightBack.setDirection(DcMotorSimple.Direction.REVERSE );
         //intake = hardwareMap.get(DcMotor.class, "intake");
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
@@ -105,9 +109,6 @@ public class Drive extends OpMode {
         telemetry.addData("b2", b2);
         telemetry.addData("x2", x2);
         telemetry.addData("y2", y2);
-
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
-        rightBack.setDirection(DcMotorSimple.Direction.REVERSE );
 
         // wheels
         // if in turbo mode, full power, otherwise half
