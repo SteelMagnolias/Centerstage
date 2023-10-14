@@ -20,7 +20,7 @@ public class Drive extends OpMode {
     //private DcMotor verticalArm;
 
     // servos
-    private Servo intakeClaw;
+    //private Servo intakeClaw;
 
     // sensors
     //private DistanceSensor distanceSensor;
@@ -301,7 +301,7 @@ public class Drive extends OpMode {
             // throw plane
             throwPlane();
         }
-        
+
          */
     }
 
