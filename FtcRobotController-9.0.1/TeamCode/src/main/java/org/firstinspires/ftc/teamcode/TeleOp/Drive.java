@@ -182,11 +182,67 @@ public class Drive extends OpMode {
         telemetry.addData("rbr", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
 
 
-        // set power of wheels
+        // set power of wheels and apply any rotation
         leftFront.setPower(fl + rightx1);
         leftBack.setPower(bl + rightx1);
         rightFront.setPower(fr - rightx1);
         rightBack.setPower(br - rightx1);
+
+        // Below: precision (slower) movement
+        pow *= 0.5;
+        if (buttonUp1) {
+            // slowly moves forwards
+            leftFront.setPower(pow);
+            leftBack.setPower(pow);
+            rightFront.setPower(pow);
+            rightBack.setPower(pow);
+        } else if (buttonDown1) {
+            // slowly moves backwards
+            leftFront.setPower(-pow);
+            leftBack.setPower(-pow);
+            rightFront.setPower(-pow);
+            rightBack.setPower(-pow);
+        } else if (buttonRight1) {
+            // slowly moves right
+            leftFront.setPower(pow);
+            leftBack.setPower(-pow);
+            rightFront.setPower(-pow);
+            rightBack.setPower(pow);
+        } else if (buttonLeft1) {
+            // slowly moves left
+            leftFront.setPower(-pow);
+            leftBack.setPower(pow);
+            rightFront.setPower(pow);
+            rightBack.setPower(-pow);
+        } else if (rb1){
+            // rotate slowly right (clockwise)
+            leftFront.setPower(pow);
+            leftBack.setPower(pow);
+            rightFront.setPower(-pow);
+            rightBack.setPower(-pow);
+        }
+        else if (lb1) {
+            // rotate slowly left (counter-clockwise)
+            leftFront.setPower(-pow);
+            leftBack.setPower(-pow);
+            rightFront.setPower(pow);
+            rightBack.setPower(pow);
+        } else {
+            // stops movement
+            leftFront.setPower(0);
+            leftBack.setPower(0);
+            rightFront.setPower(0);
+            rightBack.setPower(0);
+        }
+
+        // emergency stop
+        if (b1 && y1) {
+            stop();
+        }
+
+        // 
+
+
     }
 
     public void stop() {
