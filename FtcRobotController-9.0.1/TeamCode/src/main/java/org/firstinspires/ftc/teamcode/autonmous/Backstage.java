@@ -13,10 +13,10 @@ public class Backstage extends LinearOpMode{
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    private DcMotor intake;
-    private DcMotor hook;
-    private DcMotor horizontalArm;
-    private DcMotor verticalArm;
+    //private DcMotor intake;
+    //private DcMotor hook;
+    //private DcMotor horizontalArm;
+    //private DcMotor verticalArm;
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
@@ -33,13 +33,13 @@ public class Backstage extends LinearOpMode{
 
         // initialization of variables
         leftFront=hardwareMap.get(DcMotor.class, "leftFront");
-        rightFront=hardwareMap.get(DcMotor.class, "rightMotor");
+        rightFront=hardwareMap.get(DcMotor.class, "rightFront");
         leftBack=hardwareMap.get(DcMotor.class, "leftBack");
         rightBack=hardwareMap.get(DcMotor.class, "rightBack");
-        intake=hardwareMap.get(DcMotor.class, "intake");
-        hook=hardwareMap.get(DcMotor.class, "hook");
-        horizontalArm=hardwareMap.get(DcMotor.class, "horizontalArm");
-        verticalArm=hardwareMap.get(DcMotor.class, "verticalArm");
+        //intake=hardwareMap.get(DcMotor.class, "intake");
+        //hook=hardwareMap.get(DcMotor.class, "hook");
+        //horizontalArm=hardwareMap.get(DcMotor.class, "horizontalArm");
+        //verticalArm=hardwareMap.get(DcMotor.class, "verticalArm");
 
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
 
@@ -52,10 +52,10 @@ public class Backstage extends LinearOpMode{
         telemetry.addData("rightFront", rightFront.getPower());
         telemetry.addData("leftBack", leftBack.getPower());
         telemetry.addData("rightBack", rightBack.getPower());
-        telemetry.addData("intake", intake.getPower());
-        telemetry.addData("hook", hook.getPower());
-        telemetry.addData("horizontalArm", horizontalArm.getPower());
-        telemetry.addData("verticalArm", verticalArm.getPower());
+        //telemetry.addData("intake", intake.getPower());
+        //telemetry.addData("hook", hook.getPower());
+        //telemetry.addData("horizontalArm", horizontalArm.getPower());
+        //telemetry.addData("verticalArm", verticalArm.getPower());
 
         telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
 
