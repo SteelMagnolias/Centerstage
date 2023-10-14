@@ -243,6 +243,7 @@ public class Drive extends OpMode {
             stop();
         }
 
+        /*
         pow = 0.4;
         // ball and socket movement (horizontal)
         if (Math.abs(leftx2) > 0.1) {
@@ -300,9 +301,23 @@ public class Drive extends OpMode {
             // throw plane
             throwPlane();
         }
+        
+         */
     }
 
     public void stop() {
         // stop code
+    }
+
+    public void automatedLift() {
+        // bring lift up for hang
+    }
+
+    public void releaseLift() {
+        // lower lift (in case of error)
+    }
+
+    public void throwPlane() {
+        // throw plane from behind truss
     }
 }
