@@ -61,7 +61,7 @@ public class Drive extends OpMode {
         double lefty1 = -(gamepad1.left_stick_y); // this is the value of gamepad1's left joystick y value
         double leftx1 = gamepad1.left_stick_x; // this is the value of gamepad1's left joystick x value
         double rightx1 = gamepad1.right_stick_x; // this is the value of gamepad1's right joystick x value
-        double righty1 = (gamepad1.right_stick_y); // this the value of gamepad1's right joystick y value
+        double righty1 = -(gamepad1.right_stick_y); // this the value of gamepad1's right joystick y value
         boolean buttonUp1 = gamepad1.dpad_up; // this is the value of gamepad1's up button on the dpad
         boolean buttonDown1 = gamepad1.dpad_down; // this is the value of gamepad1's down button on the dpad
         boolean buttonLeft1 = gamepad1.dpad_left; // this is the value of the gamepad1's left button on the dpad
@@ -77,7 +77,7 @@ public class Drive extends OpMode {
         double lefty2 = -(gamepad2.left_stick_y); // this is the value of gamepad2's left joystick y value
         double leftx2 = gamepad2.left_stick_x; // this is the value of gamepad2's left joystick x value
         double rightx2 = gamepad2.right_stick_x; // this the value of gamepad2's right joystick x value
-        double righty2 = (gamepad2.right_stick_y); // this is the value of gamepad2's right joystick y value
+        double righty2 = -(gamepad2.right_stick_y); // this is the value of gamepad2's right joystick y value
         boolean a2 = gamepad2.a; // this is the value of the a button on gamepad2
         boolean x2 = gamepad2.x; // this is the value of the x button on gamepad2
         boolean y2 = gamepad2.y; // this is the value of the y button on gamepad2
