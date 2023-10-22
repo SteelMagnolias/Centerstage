@@ -25,7 +25,7 @@ public class CameraTest extends LinearOpMode {
     //define custom vision portal variable
     private VisionPortal visionPortal;
     //pick a custom model to use
-    private static final String TFOD_MODEL_ASSET = "change this when have custom model";
+    private static final String TFOD_MODEL_ASSET = "CenterStageHeartTraining1";
     //name options of objects identified
     private static final String[] LABELS = {
             "heartRed",
@@ -156,21 +156,21 @@ public class CameraTest extends LinearOpMode {
 
         // determine spike mark
         //if x is left of set value
-        if (x<20){
+        if (x<400){
             //set left
             spikeMark = 1;
             //say set left
             telemetry.addLine("Spike Marker Left 1");
         }
         //if x is in between set values
-        else if (20<x & x<40) {
+        else if (400<x & x<1450) {
             //set center
             spikeMark = 2;
             //say set center
             telemetry.addLine("Spike Marker Center 2");
         }
         //if more than set value
-        else if (x>40){
+        else if (x>1450){
             //set right
             spikeMark = 3;
             // say set right
