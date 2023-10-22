@@ -6,26 +6,54 @@ import android.util.Size;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 @TeleOp (name = "AprilTagTest" , group = "Iterative Opmode")
 public class AprilTagTest extends LinearOpMode {
+    //DD=desired distance
+    final double desiredDistance = 12.0;
+    //forward speed control
+    final double driveGain  =  0.02;
+    //strafe speed control
+    final double strafeGain =  0.015;
+    // turn speed control
+    final double turnGain   =  0.01;
+    //max drive speed
+    final double maxDrive = 0.5;
+    //max strafe speed
+    final double maxStrafe = 0.5;
+    //max turn speed
+    final double maxTurn = 0.3;
+
+    // declare motors
+    private DcMotor leftFront;
+    private DcMotor rightFront;
+    private DcMotor leftBack;
+    private DcMotor rightBack;
 
     //custom apriltag variable
     private AprilTagProcessor aprilTag;
 
     //custom visionportal variable
     private VisionPortal visionPortal;
+    private AprilTagDetection desiredTag = null;
+    //desired tag Id
+    private static final int DTID = -1;
 
-    public void runOpMode() {
+    @Override public void runOpMode() {
         // initiate apriltag see function for more
         initAprilTag();
 
