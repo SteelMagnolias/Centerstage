@@ -13,10 +13,10 @@ public class Wings extends LinearOpMode{
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    private DcMotor intake;
-    private DcMotor hook;
-    private DcMotor horizontalArm;
-    private DcMotor verticalArm;
+    //private DcMotor intake;
+    //private DcMotor hook;
+    //private DcMotor horizontalArm;
+    //private DcMotor verticalArm;
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
@@ -33,13 +33,13 @@ public class Wings extends LinearOpMode{
 
         // initialization of variables
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
-        rightFront = hardwareMap.get(DcMotor.class, "rightMotor");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        intake = hardwareMap.get(DcMotor.class, "intake");
-        hook = hardwareMap.get(DcMotor.class, "hook");
-        horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
-        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        //intake = hardwareMap.get(DcMotor.class, "intake");
+        //hook = hardwareMap.get(DcMotor.class, "hook");
+        //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
+        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
 
@@ -52,10 +52,10 @@ public class Wings extends LinearOpMode{
         telemetry.addData("rightFront", rightFront.getPower());
         telemetry.addData("leftBack", leftBack.getPower());
         telemetry.addData("rightBack", rightBack.getPower());
-        telemetry.addData("intake", intake.getPower());
-        telemetry.addData("hook", hook.getPower());
-        telemetry.addData("horizontalArm", horizontalArm.getPower());
-        telemetry.addData("verticalArm", verticalArm.getPower());
+        //telemetry.addData("intake", intake.getPower());
+        //telemetry.addData("hook", hook.getPower());
+        //telemetry.addData("horizontalArm", horizontalArm.getPower());
+        //telemetry.addData("verticalArm", verticalArm.getPower());
 
         telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
 
@@ -88,13 +88,13 @@ public class Wings extends LinearOpMode{
         }
         else{
             //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
+            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 10000);
             // change as you will
-            drive(drivePow, drivePow, drivePow, drivePow, 1000);
+            drive(drivePow, drivePow, drivePow, drivePow, 10000);
             //drop purple pixel
             dropPixel();
             //strafe right
-            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 10000);
         }
         //drive backwards almost 1 square
         drive(-drivePow, -drivePow, -drivePow, -drivePow, 750);

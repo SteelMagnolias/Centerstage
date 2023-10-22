@@ -1,21 +1,31 @@
 package org.firstinspires.ftc.teamcode.autonmous;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.*;
 
-public class OdometryTest extends LinearOpMode {
+@Autonomous(name = "OdometryTest", group="Linear OpMode")
+public class OdometryTest extends OpMode {
 
     // initializations stuff
 
     @Override
-    public void runOpMode() {
+    public void init() {
         // init
 
-        waitForStart();
+    }
 
-        // start code
-        while (opModeIsActive()) {
-           // actual actions lol
-        }
+    @Override
+    public void loop() {
+        // repeating code - contains state machine
+    }
+
+    @Override
+    public void stop() {
+        // stops code
+    }
+
+    public void runOdometry() {
+        // runs odometry
     }
 }

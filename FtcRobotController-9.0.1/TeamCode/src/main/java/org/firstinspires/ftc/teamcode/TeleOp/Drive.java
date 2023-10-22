@@ -19,6 +19,10 @@ public class Drive extends OpMode {
     //private DcMotor horizontalArm;
     //private DcMotor verticalArm;
 
+    // encoders (really motors), but clarity
+    private DcMotor leftEncoder;
+    private DcMotor rightEncoder;
+
     // servos
     //private Servo intakeClaw;
 
@@ -27,9 +31,28 @@ public class Drive extends OpMode {
 
     // cameras
 
+    // bot constraints:
+    double trackWidth = 0;
+    double yOffSet = 0;
+    double wheelRadius = 4.8; // centimeters
+    double cpr = 8192; // counts per rotation
+    double wheelCircumference = 2 * Math.PI * wheelRadius;
+
     // other variables
     double pow; // motor power for wheels
     double theta; // angle of wheels joystick
+    double fieldTheta; // angle of bot according to field
+    boolean clawClosed; // tells whether the claw is closed or not
+    double botHeading; // angle of robot on field according to encoders
+    double prevLeftEncoder = 0;
+    double prevRightEncoder = 0;
+    double currentLeftEncoder = 0;
+    double currentRightEncoder = 0;
+
+    // rotated x and y values for field-centric drive
+    double rotX;
+    double rotY;
+
 
     public void init() {
         // init
@@ -37,14 +60,24 @@ public class Drive extends OpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+
+        // reverse motors
+        leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
         //intake = hardwareMap.get(DcMotor.class, "intake");
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
         //intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        //intakeClaw.setPosition(0); // closed
+        clawClosed = true;
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+
+        // copy values from the attached motor port.  better for readability
+        leftEncoder = leftFront;
+        rightEncoder = rightFront;
     }
 
     public void loop(){
@@ -54,7 +87,7 @@ public class Drive extends OpMode {
         double lefty1 = -(gamepad1.left_stick_y); // this is the value of gamepad1's left joystick y value
         double leftx1 = gamepad1.left_stick_x; // this is the value of gamepad1's left joystick x value
         double rightx1 = gamepad1.right_stick_x; // this is the value of gamepad1's right joystick x value
-        double righty1 = (gamepad1.right_stick_y); // this the value of gamepad1's right joystick y value
+        double righty1 = -(gamepad1.right_stick_y); // this the value of gamepad1's right joystick y value
         boolean buttonUp1 = gamepad1.dpad_up; // this is the value of gamepad1's up button on the dpad
         boolean buttonDown1 = gamepad1.dpad_down; // this is the value of gamepad1's down button on the dpad
         boolean buttonLeft1 = gamepad1.dpad_left; // this is the value of the gamepad1's left button on the dpad
@@ -70,7 +103,7 @@ public class Drive extends OpMode {
         double lefty2 = -(gamepad2.left_stick_y); // this is the value of gamepad2's left joystick y value
         double leftx2 = gamepad2.left_stick_x; // this is the value of gamepad2's left joystick x value
         double rightx2 = gamepad2.right_stick_x; // this the value of gamepad2's right joystick x value
-        double righty2 = (gamepad2.right_stick_y); // this is the value of gamepad2's right joystick y value
+        double righty2 = -(gamepad2.right_stick_y); // this is the value of gamepad2's right joystick y value
         boolean a2 = gamepad2.a; // this is the value of the a button on gamepad2
         boolean x2 = gamepad2.x; // this is the value of the x button on gamepad2
         boolean y2 = gamepad2.y; // this is the value of the y button on gamepad2
@@ -103,9 +136,6 @@ public class Drive extends OpMode {
         telemetry.addData("x2", x2);
         telemetry.addData("y2", y2);
 
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
-        rightBack.setDirection(DcMotorSimple.Direction.REVERSE );
-
         // wheels
         // if in turbo mode, full power, otherwise half
         if (a1) pow = 1; // turbo mode
@@ -128,9 +158,15 @@ public class Drive extends OpMode {
             theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
         }
 
-        double dir = 1;
-        if (theta >= Math.PI) {
-            theta -= Math.PI;
+        // determine angle turned
+        //botHeading = getAngle();
+
+        // new angle for calculations
+        fieldTheta = theta + botHeading;
+
+        double dir = 1; // default of direction being forward
+        if (fieldTheta >= Math.PI) { // if we have an angle other 180 degrees on unit circle, then direction is backward
+            fieldTheta -= Math.PI;
             dir = -1;
         }
         //if (leftx1 <= 0 && lefty1 >= 0 || leftx1 >= 0 && lefty1 <= 0){
@@ -141,49 +177,204 @@ public class Drive extends OpMode {
         telemetry.addData("dir", dir);
         telemetry.addData("c", c);
         telemetry.addData("theta", theta);
+        telemetry.addData("fieldTheta", fieldTheta);
 
-        double fr = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
-        if (fr > 1) fr = 1;
+        // calculate power of front right wheel
+        double fr = dir * ((fieldTheta - (Math.PI / 4)) / (Math.PI / 4)); // wheels move on a 45 degree angle, find the ratio of where we want to drive to where we need to be
+        if (fr > 1) fr = 1; // cap speeds at 1 and -1
         if (fr < -1) fr = -1;
-        fr = (perct * fr);
-        if (leftx1 == 0 && lefty1 == 0) fr = 0;
+        fr = (perct * fr); // scale by power
+        if (leftx1 == 0 && lefty1 == 0) fr = 0; // if no joystick movement stop
 
-        double bl = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
-        if (bl > 1) bl = 1;
+        // calculate power of back left wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
+        double bl = dir * ((fieldTheta - (Math.PI / 4)) / (Math.PI / 4));
+        if (bl > 1) bl = 1; // cap speeds at 1 and -1
         if (bl < -1) bl = -1;
-        bl = (perct * bl);
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0;
+        bl = (perct * bl); // scale by power
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0; // if no joystick movement, stop wheel
 
-        double fl = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
-        if (fl > 1) fl = 1;
+        // calculate power of front left wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
+        double fl = -dir * ((fieldTheta - (3 * Math.PI / 4)) / (Math.PI / 4));
+        if (fl > 1) fl = 1; // cap powers at 1 and -1
         if (fl < -1) fl = -1;
-        fl = (perct * fl);
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0;
+        fl = (perct * fl); // scale by power
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0; // if no joystick movement, stop wheel
 
-        double br = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
-        if (br > 1) br = 1;
+        // calculate power of back right wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
+        double br = -dir * ((fieldTheta - (3 * Math.PI / 4)) / (Math.PI / 4));
+        if (br > 1) br = 1; // cap powers at 1 and -1
         if (br < -1) br = -1;
-        br = (perct * br);
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0;
+        br = (perct * br); // scale by power
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0; // if no joystick movement, stop
 
+        // add power for each wheel
         telemetry.addData("fl", fl);
         telemetry.addData("fr", fr);
         telemetry.addData("bl", bl);
         telemetry.addData("br", br);
 
-        telemetry.addData("rlf", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-        telemetry.addData("rrf", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-        telemetry.addData("rbl", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-        telemetry.addData("rbr", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rlf", -dir * ((fieldTheta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rrf", dir * ((fieldTheta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rbl", dir * ((fieldTheta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rbr", -dir * ((fieldTheta - (3 * Math.PI / 4)) / (Math.PI / 4)));
 
 
+        // set power of wheels and apply any rotation
         leftFront.setPower(fl + rightx1);
         leftBack.setPower(bl + rightx1);
         rightFront.setPower(fr - rightx1);
         rightBack.setPower(br - rightx1);
+
+        // Below: precision (slower) movement
+        pow *= 0.5;
+        if (buttonUp1) {
+            // slowly moves forwards
+            leftFront.setPower(pow);
+            leftBack.setPower(pow);
+            rightFront.setPower(pow);
+            rightBack.setPower(pow);
+        } else if (buttonDown1) {
+            // slowly moves backwards
+            leftFront.setPower(-pow);
+            leftBack.setPower(-pow);
+            rightFront.setPower(-pow);
+            rightBack.setPower(-pow);
+        } else if (buttonRight1) {
+            // slowly moves right
+            leftFront.setPower(pow);
+            leftBack.setPower(-pow);
+            rightFront.setPower(-pow);
+            rightBack.setPower(pow);
+        } else if (buttonLeft1) {
+            // slowly moves left
+            leftFront.setPower(-pow);
+            leftBack.setPower(pow);
+            rightFront.setPower(pow);
+            rightBack.setPower(-pow);
+        } else if (rb1){
+            // rotate slowly right (clockwise)
+            leftFront.setPower(pow);
+            leftBack.setPower(pow);
+            rightFront.setPower(-pow);
+            rightBack.setPower(-pow);
+        }
+        else if (lb1) {
+            // rotate slowly left (counter-clockwise)
+            leftFront.setPower(-pow);
+            leftBack.setPower(-pow);
+            rightFront.setPower(pow);
+            rightBack.setPower(pow);
+        } else {
+            // stops movement
+            leftFront.setPower(0);
+            leftBack.setPower(0);
+            rightFront.setPower(0);
+            rightBack.setPower(0);
+        }
+
+        // emergency stop
+        if (b1 && y1) {
+            stop();
+        }
+
+        /*
+        pow = 0.4;
+        // ball and socket movement (horizontal)
+        if (Math.abs(leftx2) > 0.1) {
+            horizontalArm.setPower(pow * leftx2);
+        }
+        else {
+            // no movement
+            horizontalArm.setPower(0);
+        }
+
+        // ball and socket movement (vertical)
+        if (Math.abs(lefty2) > 0.1) {
+            verticalArm.setPower(pow * lefty2);
+        }
+        else {
+            // no movement
+            verticalArm.setPower(0);
+        }
+
+        pow = 0.9;
+        // intake in out controls
+        if (Math.abs(righty2) > 0.1) {
+            // intake or outtake
+            intake.setPower(pow * righty2);
+        }
+        else {
+            intake.setPower(0);
+        }
+
+
+        // climbing
+        if (y2) {
+            // lift go up
+            automatedLift();
+        }
+
+        if(x2) {
+            // release lift
+            releaseLift();
+        }
+
+        if(b2) {
+            // claw open / close
+            if (clawClosed) {
+                // open claw
+                intakeClaw.setPosition(1);
+            }
+            else if (!clawClosed) {
+                // close claw
+                intakeClaw.setPosition(0);
+            }
+        }
+
+        if (a2) {
+            // throw plane
+            throwPlane();
+        }
+
+         */
     }
 
     public void stop() {
         // stop code
     }
+
+    public void automatedLift() {
+        // bring lift up for hang
+    }
+
+    public void releaseLift() {
+        // lower lift (in case of error)
+    }
+
+    public void throwPlane() {
+        // throw plane from behind truss
+    }
+
+    /*
+    public double getAngle() {
+
+        double phi = 0; // angle we will be calculating
+        double changeLeft = 0;
+        double changeRight = 0;
+
+        // get current positions
+        currentLeftEncoder = leftEncoder.getCurrentPosition();
+        currentRightEncoder = rightEncoder.getCurrentPosition();
+
+        // calculate change in encoder positions
+        changeLeft = currentLeftEncoder - prevLeftEncoder;
+        changeRight = currentRightEncoder - prevRightEncoder;
+
+        changeLeft = (changeLeft / cpr) * wheelCircumference; // centimeters
+        changeRight = (changeRight / cpr) * wheelCircumference; // centimeters
+
+        phi = (changeLeft - changeRight) / trackWidth; // angle changed
+
+        return phi;
+     */
 }
