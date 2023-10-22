@@ -15,7 +15,7 @@ public class Drive extends OpMode {
     private DcMotor leftBack;
     private DcMotor rightBack;
     //private DcMotor intake;
-    //private DcMotor hook;
+    private DcMotor hook;
     //private DcMotor horizontalArm;
     //private DcMotor verticalArm;
 
@@ -52,6 +52,7 @@ public class Drive extends OpMode {
     // rotated x and y values for field-centric drive
     double rotX;
     double rotY;
+    int x3;
 
 
     public void init() {
@@ -65,7 +66,7 @@ public class Drive extends OpMode {
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         //intake = hardwareMap.get(DcMotor.class, "intake");
-        //hook = hardwareMap.get(DcMotor.class, "hook");
+        hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
@@ -337,8 +338,19 @@ public class Drive extends OpMode {
         }
 
          */
+        switch(x3){
+            case 0:
+                //raise lift
+                break;
+            case 1:
+                //drive forward
+                break;
+            default:
+                //raise bot
+                break;
     }
 
+    }
     public void stop() {
         // stop code
     }
