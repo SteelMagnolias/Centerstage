@@ -278,66 +278,66 @@ public class Drive extends OpMode {
             stop();
         }
 
-        /*
-        pow = 0.4;
-        // ball and socket movement (horizontal)
-        if (Math.abs(leftx2) > 0.1) {
-            horizontalArm.setPower(pow * leftx2);
-        }
-        else {
-            // no movement
-            horizontalArm.setPower(0);
-        }
+       /*
+       pow = 0.4;
+       // ball and socket movement (horizontal)
+       if (Math.abs(leftx2) > 0.1) {
+           horizontalArm.setPower(pow * leftx2);
+       }
+       else {
+           // no movement
+           horizontalArm.setPower(0);
+       }
 
-        // ball and socket movement (vertical)
-        if (Math.abs(lefty2) > 0.1) {
-            verticalArm.setPower(pow * lefty2);
-        }
-        else {
-            // no movement
-            verticalArm.setPower(0);
-        }
+       // ball and socket movement (vertical)
+       if (Math.abs(lefty2) > 0.1) {
+           verticalArm.setPower(pow * lefty2);
+       }
+       else {
+           // no movement
+           verticalArm.setPower(0);
+       }
 
-        pow = 0.9;
-        // intake in out controls
-        if (Math.abs(righty2) > 0.1) {
-            // intake or outtake
-            intake.setPower(pow * righty2);
-        }
-        else {
-            intake.setPower(0);
-        }
+       pow = 0.9;
+       // intake in out controls
+       if (Math.abs(righty2) > 0.1) {
+           // intake or outtake
+           intake.setPower(pow * righty2);
+       }
+       else {
+           intake.setPower(0);
+       }
 
 
-        // climbing
-        if (y2) {
-            // lift go up
-            automatedLift();
-        }
+       // climbing
+       if (y2) {
+           // lift go up
+           automatedLift();
+       }
 
-        if(x2) {
-            // release lift
-            releaseLift();
-        }
+       if(x2) {
+           // release lift
+           releaseLift();
+       }
 
-        if(b2) {
-            // claw open / close
-            if (clawClosed) {
-                // open claw
-                intakeClaw.setPosition(1);
-            }
-            else if (!clawClosed) {
-                // close claw
-                intakeClaw.setPosition(0);
-            }
-        }
+       if(b2) {
+           // claw open / close
+           if (clawClosed) {
+               // open claw
+               intakeClaw.setPosition(1);
+           }
+           else if (!clawClosed) {
+               // close claw
+               intakeClaw.setPosition(0);
+           }
+       }
 
-        if (a2) {
-            // throw plane
-            throwPlane();
-        }
+       if (a2) {
+           // throw plane
+           throwPlane();
+       }
 
-         */
+        */
         switch(x3){
             case 0:
                 //raise lift
@@ -348,7 +348,7 @@ public class Drive extends OpMode {
             default:
                 //raise bot
                 break;
-    }
+        }
 
     }
     public void stop() {
@@ -367,26 +367,28 @@ public class Drive extends OpMode {
         // throw plane from behind truss
     }
 
-    /*
-    public double getAngle() {
+   /*
+   public double getAngle() {
 
-        double phi = 0; // angle we will be calculating
-        double changeLeft = 0;
-        double changeRight = 0;
+       double phi = 0; // angle we will be calculating
+       double changeLeft = 0;
+       double changeRight = 0;
 
-        // get current positions
-        currentLeftEncoder = leftEncoder.getCurrentPosition();
-        currentRightEncoder = rightEncoder.getCurrentPosition();
+       // get current positions
+       currentLeftEncoder = leftEncoder.getCurrentPosition();
+       currentRightEncoder = rightEncoder.getCurrentPosition();
 
-        // calculate change in encoder positions
-        changeLeft = currentLeftEncoder - prevLeftEncoder;
-        changeRight = currentRightEncoder - prevRightEncoder;
+       // calculate change in encoder positions
+       changeLeft = currentLeftEncoder - prevLeftEncoder;
+       changeRight = currentRightEncoder - prevRightEncoder;
 
-        changeLeft = (changeLeft / cpr) * wheelCircumference; // centimeters
-        changeRight = (changeRight / cpr) * wheelCircumference; // centimeters
+       changeLeft = (changeLeft / cpr) * wheelCircumference; // centimeters
+       changeRight = (changeRight / cpr) * wheelCircumference; // centimeters
 
-        phi = (changeLeft - changeRight) / trackWidth; // angle changed
+       phi = (changeLeft - changeRight) / trackWidth; // angle changed
 
-        return phi;
-     */
+       return phi;
+    */
 }
+
+
