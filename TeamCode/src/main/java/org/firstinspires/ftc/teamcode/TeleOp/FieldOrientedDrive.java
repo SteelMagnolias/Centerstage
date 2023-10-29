@@ -5,12 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 
 
-@TeleOp (name = "Drive" , group = "Iterative Opmode")
-public class Drive extends OpMode {
+@TeleOp (name = "FieldOrientedDrive" , group = "Iterative Opmode")
+public class FieldOrientedDrive extends OpMode {
 
 
     // declare motors
@@ -21,13 +19,17 @@ public class Drive extends OpMode {
     //private DcMotor intake;
     //private DcMotor hook;
     //private DcMotor horizontalArm;
-    private DcMotor verticalArm;
+    //private DcMotor verticalArm;
 
+
+    // encoders (really motors), but clarity
+    private DcMotor leftEncoder;
+    private DcMotor rightEncoder;
+    private DcMotor backEncoder;
 
 
     // servos
-    private Servo intakeClaw;
-    private Servo wrist;
+    //private Servo intakeClaw;
 
 
     // sensors
@@ -47,9 +49,9 @@ public class Drive extends OpMode {
 
     // other variables
     double pow; // motor power for wheels
-    double theta; // angle of wheels joystick
+    double theta = 0; // angle of wheels joystick
     boolean clawClosed; // tells whether the claw is closed or not
-    boolean wristOut;
+    double botHeading; // angle of robot on field according to encoders
     double prevLeftEncoder = 0;
     double prevRightEncoder = 0;
     double currentLeftEncoder = 0;
@@ -78,19 +80,21 @@ public class Drive extends OpMode {
         //intake = hardwareMap.get(DcMotor.class, "intake");
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
-        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
 
-        intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        intakeClaw.setDirection(Servo.Direction.REVERSE);
-        intakeClaw.setPosition(0); // closed
-        wrist = hardwareMap.get(Servo.class, "wrist");
-        wrist.setPosition(0);
+        //intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        //intakeClaw.setPosition(0); // closed
         clawClosed = true;
-        wristOut = false;
 
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+
+
+        // copy values from the attached motor port.  better for readability
+        leftEncoder = leftBack;
+        rightEncoder = rightBack;
+        backEncoder = rightFront;
     }
 
 
@@ -159,94 +163,19 @@ public class Drive extends OpMode {
         // if in turbo mode, full power, otherwise half
         if (a1) pow = 1; // turbo mode
         else pow =0.5;
-        double c = Math.hypot(leftx1, lefty1); // find length of hypot using tan of triangle made by x and y
-        double perct = pow * c; // scale by max power
-        if (c <= .1) perct = 0; // if we are less than .1 power, than just don't move since we are in dead zone
 
+        // find bot heading
+        botHeading = -1 * getAngle();
 
-        // determine quandrant
-        if (leftx1 <= 0 && lefty1 >= 0) {
-            theta = Math.atan(Math.abs(leftx1) / Math.abs(lefty1));
-            theta += (Math.PI / 2);
-        } else if (leftx1 < 0 && lefty1 <= 0) {
-            theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
-            theta += (Math.PI);
-        } else if (leftx1 >= 0 && lefty1 < 0) {
-            theta = Math.atan(Math.abs(leftx1) / Math.abs(lefty1));
-            theta += (3 * Math.PI / 2);
-        } else {
-            theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
-        }
+        // find rotated x and y using rotation matrix
+        rotX = leftx1*Math.cos(botHeading) - lefty1*Math.sin(botHeading);
+        rotY = leftx1*Math.sin(botHeading) + lefty1*Math.cos(botHeading);
 
+        // denominator: scales to the ratio of the sides to determine powers (max of 1)
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rightx1), 1);
 
-        double dir = 1; // default of direction being forward
-        if (theta >= Math.PI) { // if we have an angle other 180 degrees on unit circle, then direction is backward
-            theta -= Math.PI;
-            dir = -1;
-        }
-        //if (leftx1 <= 0 && lefty1 >= 0 || leftx1 >= 0 && lefty1 <= 0){
-        //   theta += (Math.PI/2);
-        //}
-
-
-        telemetry.addData("pow", pow);
-        telemetry.addData("dir", dir);
-        telemetry.addData("c", c);
-        telemetry.addData("theta", theta);
-
-
-        // calculate power of front right wheel
-        double fr = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4)); // wheels move on a 45 degree angle, find the ratio of where we want to drive to where we need to be
-        if (fr > 1) fr = 1; // cap speeds at 1 and -1
-        if (fr < -1) fr = -1;
-        fr = (perct * fr); // scale by power
-        if (leftx1 == 0 && lefty1 == 0) fr = 0; // if no joystick movement stop
-
-
-        // calculate power of back left wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
-        double bl = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
-        if (bl > 1) bl = 1; // cap speeds at 1 and -1
-        if (bl < -1) bl = -1;
-        bl = (perct * bl); // scale by power
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0; // if no joystick movement, stop wheel
-
-
-        // calculate power of front left wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
-        double fl = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
-        if (fl > 1) fl = 1; // cap powers at 1 and -1
-        if (fl < -1) fl = -1;
-        fl = (perct * fl); // scale by power
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0; // if no joystick movement, stop wheel
-
-
-        // calculate power of back right wheel, wheels move on 45 degree angles, find the ratio between where we are and where we should be
-        double br = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
-        if (br > 1) br = 1; // cap powers at 1 and -1
-        if (br < -1) br = -1;
-        br = (perct * br); // scale by power
-        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0; // if no joystick movement, stop
-
-
-        // add power for each wheel
-        telemetry.addData("fl", fl);
-        telemetry.addData("fr", fr);
-        telemetry.addData("bl", bl);
-        telemetry.addData("br", br);
-
-
-        telemetry.addData("rlf", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-        telemetry.addData("rrf", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-        telemetry.addData("rbl", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-        telemetry.addData("rbr", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
-
-
-
-
-        // set power of wheels and apply any rotation
-        leftFront.setPower(fl + rightx1);
-        leftBack.setPower(bl + rightx1);
-        rightFront.setPower(fr - rightx1);
-        rightBack.setPower(br - rightx1);
+        // set powers of wheels
+        //double frontLeftPower = (rotY + rotX + rx) / denominator;
 
 
         // Below: precision (slower) movement
@@ -301,7 +230,9 @@ public class Drive extends OpMode {
         if (b1 && y1) {
             stop();
         }
-        /*
+
+
+      /*
       pow = 0.4;
       // ball and socket movement (horizontal)
       if (Math.abs(leftx2) > 0.1) {
@@ -311,8 +242,6 @@ public class Drive extends OpMode {
           // no movement
           horizontalArm.setPower(0);
       }
-
-         */
 
 
       // ball and socket movement (vertical)
@@ -325,7 +254,6 @@ public class Drive extends OpMode {
       }
 
 
-      /*
       pow = 0.9;
       // intake in out controls
       if (Math.abs(righty2) > 0.1) {
@@ -340,54 +268,31 @@ public class Drive extends OpMode {
 
 
       // climbing
-      if (rb2) {
+      if (y2) {
           // lift go up
           automatedLift();
       }
 
 
-      if(lb2) {
+      if(x2) {
           // release lift
           releaseLift();
       }
 
-
-*/
 
       if(b2) {
           // claw open / close
           if (clawClosed) {
               // open claw
               intakeClaw.setPosition(1);
-              clawClosed = true;
           }
           else if (!clawClosed) {
               // close claw
               intakeClaw.setPosition(0);
-              clawClosed = true;
           }
       }
 
 
-      if (x2) {
-          if (wristOut) {
-              // wrist out, let's tuck it in
-              wrist.setPosition(0);
-
-              // change status
-              wristOut = false;
-          }
-          else {
-              // wrist tucked in, let's bring it out
-              wrist.setPosition(1);
-
-              // change status
-              wristOut = true;
-          }
-      }
-
-
-/*
       if (a2) {
           // throw plane
           throwPlane();
@@ -395,8 +300,6 @@ public class Drive extends OpMode {
 
 
        */
-
-        /*
         switch(x3){
             case 0:
                 //raise lift
@@ -408,8 +311,6 @@ public class Drive extends OpMode {
                 //raise bot
                 break;
         }
-
-         */
 
 
     }
@@ -431,4 +332,34 @@ public class Drive extends OpMode {
     public void throwPlane() {
         // throw plane from behind truss
     }
+
+  public double getAngle() {
+
+
+      double phi = 0; // angle we will be calculating
+      double changeLeft = 0;
+      double changeRight = 0;
+
+
+      // get current positions
+      currentLeftEncoder = leftEncoder.getCurrentPosition();
+      currentRightEncoder = rightEncoder.getCurrentPosition();
+
+
+      // calculate change in encoder positions
+      changeLeft = currentLeftEncoder - prevLeftEncoder;
+      changeRight = currentRightEncoder - prevRightEncoder;
+
+
+      changeLeft = (changeLeft / cpr) * wheelCircumference; // centimeters
+      changeRight = (changeRight / cpr) * wheelCircumference; // centimeters
+
+
+      phi = (changeLeft - changeRight) / trackWidth; // angle changed
+
+      prevLeftEncoder = currentLeftEncoder;
+      prevRightEncoder = currentRightEncoder;
+
+      return phi;
+  }
 }
