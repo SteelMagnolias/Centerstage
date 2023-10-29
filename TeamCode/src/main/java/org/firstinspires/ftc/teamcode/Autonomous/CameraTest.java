@@ -31,7 +31,7 @@ public class CameraTest extends LinearOpMode {
     //define custom vision portal variable
     private VisionPortal visionPortal;
     //pick a custom model to use
-    private static final String TFOD_MODEL_ASSET = "change when have custom file";
+    private static final String TFOD_MODEL_ASSET = "CenterStageHeartTraining1.tflite";
     //name options of objects identified
     private static final String[] LABELS = {
             "heartRed",
@@ -84,7 +84,7 @@ public class CameraTest extends LinearOpMode {
         // start building custom tfod
         TfodProcessor.Builder builder = new TfodProcessor.Builder();
         //custom training model file import
-        builder.setModelFileName(TFOD_MODEL_ASSET);
+        builder.setModelAssetName(TFOD_MODEL_ASSET);
         //get names of objects
         builder.setModelLabels(LABELS);
         // verifies the type of tensor flow model???? not really sure
