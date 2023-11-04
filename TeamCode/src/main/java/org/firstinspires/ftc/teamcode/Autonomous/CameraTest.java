@@ -49,6 +49,7 @@ public class CameraTest extends LinearOpMode {
     double x;
     //cord y variable
     double y;
+    
     @Override
     public void runOpMode() throws InterruptedException {
         //see function
@@ -119,7 +120,7 @@ public class CameraTest extends LinearOpMode {
 
 
         //must be at least 75% confident to display data
-        tfod.setMinResultConfidence(0.75f);
+        tfod.setMinResultConfidence(0.5f);
 
 
         //processor is on
@@ -134,7 +135,7 @@ public class CameraTest extends LinearOpMode {
 
 
         for (Recognition recognition : currentRecognitions) {
-            //continents
+            //coordinates
             //average x coordinates
             x = (recognition.getLeft() + recognition.getRight()) / 2 ;
             //average y coordinates
