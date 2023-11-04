@@ -73,8 +73,7 @@ public class Drive extends OpMode {
 
 
         // reverse motors
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE );
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setDirection(DcMotor.Direction.REVERSE );
         //intake = hardwareMap.get(DcMotor.class, "intake");
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");

@@ -5,10 +5,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
-@TeleOp (name = "FieldOrientedDrive" , group = "Iterative Opmode")
-public class FieldOrientedDrive extends OpMode {
+@TeleOp (name = "Drive2" , group = "Iterative Opmode")
+public class Drive2 extends OpMode {
 
 
     // declare motors
@@ -22,14 +23,10 @@ public class FieldOrientedDrive extends OpMode {
     //private DcMotor verticalArm;
 
 
-    // encoders (really motors), but clarity
-    private DcMotor leftEncoder;
-    private DcMotor rightEncoder;
-    private DcMotor backEncoder;
-
 
     // servos
-    //private Servo intakeClaw;
+    private Servo intakeClaw;
+    private Servo wrist;
 
 
     // sensors
@@ -49,9 +46,9 @@ public class FieldOrientedDrive extends OpMode {
 
     // other variables
     double pow; // motor power for wheels
-    double theta = 0; // angle of wheels joystick
+    double theta; // angle of wheels joystick
     boolean clawClosed; // tells whether the claw is closed or not
-    double botHeading; // angle of robot on field according to encoders
+    boolean wristOut;
     double prevLeftEncoder = 0;
     double prevRightEncoder = 0;
     double currentLeftEncoder = 0;
@@ -75,25 +72,25 @@ public class FieldOrientedDrive extends OpMode {
 
 
         // reverse motors
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE );
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
         //intake = hardwareMap.get(DcMotor.class, "intake");
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+/*
 
-
-        //intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        //intakeClaw.setPosition(0); // closed
+        intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        intakeClaw.setDirection(Servo.Direction.REVERSE);
+        intakeClaw.setPosition(0); // closed
+        wrist = hardwareMap.get(Servo.class, "wrist");
+        wrist.setPosition(0);
         clawClosed = true;
-
+        wristOut = false;
+*/
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
-
-
-        // copy values from the attached motor port.  better for readability
-        leftEncoder = leftBack;
-        rightEncoder = rightBack;
-        backEncoder = rightFront;
     }
 
 
@@ -117,7 +114,7 @@ public class FieldOrientedDrive extends OpMode {
         boolean y1 = gamepad1.y; // this is the value of the y button on gamepad1
         boolean b1 = gamepad1.b; // this is the value of the b button on gamepad1
 
-
+/*
         // gamepad 2
         double lefty2 = -(gamepad2.left_stick_y); // this is the value of gamepad2's left joystick y value
         double leftx2 = gamepad2.left_stick_x; // this is the value of gamepad2's left joystick x value
@@ -128,7 +125,7 @@ public class FieldOrientedDrive extends OpMode {
         boolean y2 = gamepad2.y; // this is the value of the y button on gamepad2
         boolean b2 = gamepad2.b; // this is the value of the b button on gamepad2
 
-
+*/
         // telemetry
         telemetry.addData("Gamepad:", 1);
         telemetry.addData("lefty1", lefty1);
@@ -145,7 +142,7 @@ public class FieldOrientedDrive extends OpMode {
         telemetry.addData("b1", b1);
         telemetry.addData("x1", x1);
         telemetry.addData("y1", y1);
-
+/*
 
         telemetry.addData("Gamepad:", 2);
         telemetry.addData("lefty2", lefty2);
@@ -157,81 +154,90 @@ public class FieldOrientedDrive extends OpMode {
         telemetry.addData("x2", x2);
         telemetry.addData("y2", y2);
 
-
-        // wheels
-        // if in turbo mode, full power, otherwise half
+*/
+        double pow;
         if (a1) pow = 1; // turbo mode
         else pow =0.5;
+        double c = Math.hypot(leftx1, lefty1);
+        double perct = pow * c;
+        if (c <= .1) perct = 0;
+        //
+        double theta;
 
-        // find bot heading
-        botHeading = -1 * getAngle();
-
-        // find rotated x and y using rotation matrix
-        rotX = leftx1*Math.cos(botHeading) - lefty1*Math.sin(botHeading);
-        rotY = leftx1*Math.sin(botHeading) + lefty1*Math.cos(botHeading);
-
-        // denominator: scales to the ratio of the sides to determine powers (max of 1)
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rightx1), 1);
-
-        // set powers of wheels
-        //double frontLeftPower = (rotY + rotX + rx) / denominator;
-
-
-        // Below: precision (slower) movement
-        pow *= 0.5;
-        if (buttonUp1) {
-            // slowly moves forwards
-            leftFront.setPower(pow);
-            leftBack.setPower(pow);
-            rightFront.setPower(pow);
-            rightBack.setPower(pow);
-        } else if (buttonDown1) {
-            // slowly moves backwards
-            leftFront.setPower(-pow);
-            leftBack.setPower(-pow);
-            rightFront.setPower(-pow);
-            rightBack.setPower(-pow);
-        } else if (buttonRight1) {
-            // slowly moves right
-            leftFront.setPower(pow);
-            leftBack.setPower(-pow);
-            rightFront.setPower(-pow);
-            rightBack.setPower(pow);
-        } else if (buttonLeft1) {
-            // slowly moves left
-            leftFront.setPower(-pow);
-            leftBack.setPower(pow);
-            rightFront.setPower(pow);
-            rightBack.setPower(-pow);
-        } else if (rb1){
-            // rotate slowly right (clockwise)
-            leftFront.setPower(pow);
-            leftBack.setPower(pow);
-            rightFront.setPower(-pow);
-            rightBack.setPower(-pow);
-        }
-        else if (lb1) {
-            // rotate slowly left (counter-clockwise)
-            leftFront.setPower(-pow);
-            leftBack.setPower(-pow);
-            rightFront.setPower(pow);
-            rightBack.setPower(pow);
+        if (leftx1 <= 0 && lefty1 >= 0) {
+            theta = Math.atan(Math.abs(leftx1) / Math.abs(lefty1));
+            theta += (Math.PI / 2);
+        } else if (leftx1 < 0 && lefty1 <= 0) {
+            theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
+            theta += (Math.PI);
+        } else if (leftx1 >= 0 && lefty1 < 0) {
+            theta = Math.atan(Math.abs(leftx1) / Math.abs(lefty1));
+            theta += (3 * Math.PI / 2);
         } else {
-            // stops movement
-            leftFront.setPower(0);
-            leftBack.setPower(0);
-            rightFront.setPower(0);
-            rightBack.setPower(0);
+            theta = Math.atan(Math.abs(lefty1) / Math.abs(leftx1));
         }
 
+        double dir = 1;
+        if (theta >= Math.PI) {
+            theta -= Math.PI;
+            dir = -1;
+        }
+        //if (leftx1 <= 0 && lefty1 >= 0 || leftx1 >= 0 && lefty1 <= 0){
+        //   theta += (Math.PI/2);
+        //}
+
+        telemetry.addData("pow", pow);
+        telemetry.addData("dir", dir);
+        telemetry.addData("c", c);
+        telemetry.addData("theta", theta);
+
+        double fr = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
+        if (fr > 1) fr = 1;
+        if (fr < -1) fr = -1;
+        fr = (perct * fr);
+        if (leftx1 == 0 && lefty1 == 0) fr = 0;
+
+        double bl = dir * ((theta - (Math.PI / 4)) / (Math.PI / 4));
+        if (bl > 1) bl = 1;
+        if (bl < -1) bl = -1;
+        bl = (perct * bl);
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) bl = 0;
+
+        double fl = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
+        if (fl > 1) fl = 1;
+        if (fl < -1) fl = -1;
+        fl = (perct * fl);
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) fl = 0;
+
+        double br = -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4));
+        if (br > 1) br = 1;
+        if (br < -1) br = -1;
+        br = (perct * br);
+        if (leftx1 < .1 && leftx1 > -.1 && lefty1 < .1 && lefty1 > -.1) br = 0;
+
+        telemetry.addData("fl", fl);
+        telemetry.addData("fr", fr);
+        telemetry.addData("bl", bl);
+        telemetry.addData("br", br);
+
+        telemetry.addData("rlf", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rrf", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rbl", dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+        telemetry.addData("rbr", -dir * ((theta - (3 * Math.PI / 4)) / (Math.PI / 4)));
+
+
+        leftFront.setPower(fl + rightx1);
+        leftBack.setPower(bl + rightx1);
+        rightFront.setPower(fr - rightx1);
+        rightBack.setPower(br - rightx1);
+
+        telemetry.addData("rightBack", rightBack.getPower());
 
         // emergency stop
         if (b1 && y1) {
             stop();
         }
-
-
-      /*
+        /*
       pow = 0.4;
       // ball and socket movement (horizontal)
       if (Math.abs(leftx2) > 0.1) {
@@ -242,7 +248,9 @@ public class FieldOrientedDrive extends OpMode {
           horizontalArm.setPower(0);
       }
 
+         */
 
+        /*
       // ball and socket movement (vertical)
       if (Math.abs(lefty2) > 0.1) {
           verticalArm.setPower(pow * lefty2);
@@ -253,6 +261,7 @@ public class FieldOrientedDrive extends OpMode {
       }
 
 
+      /*
       pow = 0.9;
       // intake in out controls
       if (Math.abs(righty2) > 0.1) {
@@ -267,16 +276,18 @@ public class FieldOrientedDrive extends OpMode {
 
 
       // climbing
-      if (y2) {
+      if (rb2) {
           // lift go up
           automatedLift();
       }
 
 
-      if(x2) {
+      if(lb2) {
           // release lift
           releaseLift();
       }
+
+
 
 
       if(b2) {
@@ -284,14 +295,36 @@ public class FieldOrientedDrive extends OpMode {
           if (clawClosed) {
               // open claw
               intakeClaw.setPosition(1);
+              clawClosed = true;
           }
           else if (!clawClosed) {
               // close claw
               intakeClaw.setPosition(0);
+              clawClosed = true;
+          }
+      }
+*/
+        /*
+
+      if (x2) {
+          if (wristOut) {
+              // wrist out, let's tuck it in
+              wrist.setPosition(0);
+
+              // change status
+              wristOut = false;
+          }
+          else {
+              // wrist tucked in, let's bring it out
+              wrist.setPosition(1);
+
+              // change status
+              wristOut = true;
           }
       }
 
-
+*/
+/*
       if (a2) {
           // throw plane
           throwPlane();
@@ -299,6 +332,8 @@ public class FieldOrientedDrive extends OpMode {
 
 
        */
+
+        /*
         switch(x3){
             case 0:
                 //raise lift
@@ -311,12 +346,14 @@ public class FieldOrientedDrive extends OpMode {
                 break;
         }
 
+         */
+
 
     }
     public void stop() {
         // stop code
     }
-
+/*
 
     public void automatedLift() {
         // bring lift up for hang
@@ -332,33 +369,5 @@ public class FieldOrientedDrive extends OpMode {
         // throw plane from behind truss
     }
 
-  public double getAngle() {
-
-
-      double phi = 0; // angle we will be calculating
-      double changeLeft = 0;
-      double changeRight = 0;
-
-
-      // get current positions
-      currentLeftEncoder = leftEncoder.getCurrentPosition();
-      currentRightEncoder = rightEncoder.getCurrentPosition();
-
-
-      // calculate change in encoder positions
-      changeLeft = currentLeftEncoder - prevLeftEncoder;
-      changeRight = currentRightEncoder - prevRightEncoder;
-
-
-      changeLeft = (changeLeft / cpr) * wheelCircumference; // centimeters
-      changeRight = (changeRight / cpr) * wheelCircumference; // centimeters
-
-
-      phi = (changeLeft - changeRight) / trackWidth; // angle changed
-
-      prevLeftEncoder = currentLeftEncoder;
-      prevRightEncoder = currentRightEncoder;
-
-      return phi;
-  }
+ */
 }
