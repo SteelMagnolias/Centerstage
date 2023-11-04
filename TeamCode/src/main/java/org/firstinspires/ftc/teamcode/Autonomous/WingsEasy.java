@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
@@ -21,13 +22,12 @@ public class WingsEasy extends LinearOpMode{
     //private DcMotor horizontalArm;
     //private DcMotor verticalArm;
 
+    private Servo intakeClaw;
+
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
 
-
-    // declare integer
-    private int spikeMark=0;
     private double drivePow=0.3;
 
 
@@ -48,6 +48,9 @@ public class WingsEasy extends LinearOpMode{
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        // intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+
+        leftBack.setDirection(DcMotor.Direction.REVERSE );
 
 
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
@@ -73,51 +76,22 @@ public class WingsEasy extends LinearOpMode{
 
 
         waitForStart();
-        if(spikeMark==1) {
-            //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
-            //right strafe
-            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
-            // change as you will
-            drive(drivePow, drivePow, drivePow, drivePow, 1000);
-            //drop purple pixel
-            dropPixel();
-            //left strafe
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, -drivePow *REVERSE, 1000);
-            //turn clockwise 180
-            drive(+drivePow, -drivePow, +drivePow, -drivePow, 2000);
-        }
-        else if(spikeMark==2) {
-            //drive forward
-            drive(drivePow, drivePow, drivePow, drivePow, 1000);
-            // change as you will
-            drive(drivePow, drivePow, drivePow, drivePow, 1000);
-            //drop purple pixel
-            dropPixel();
-            //drive backward
-            drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
-            //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
-        }
-        else{
-            //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 10000);
-            // change as you will
-            drive(drivePow, drivePow, drivePow, drivePow, 10000);
-            //drop purple pixel
-            dropPixel();
-            //strafe right
-            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 10000);
-        }
-        //drive backwards almost 1 square
-        drive(-drivePow, -drivePow, -drivePow, -drivePow, 750);
-        //strafe left
-        drive(-drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 2000);
-        //drive forward
+
+
+        // drive forward until in line with flip door
         drive(drivePow, drivePow, drivePow, drivePow, 5000);
-        //drop yellow pixel
+
+        // rotate clockwise until intake faces door
+        drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
+
+        // drive through door
+        drive(drivePow, drivePow, drivePow, drivePow, 7000);
+
+        // drop pixel
         dropPixel();
 
+        // back up a little
+        drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
 
         telemetry.update();
     }
@@ -139,6 +113,9 @@ public class WingsEasy extends LinearOpMode{
 
     public void dropPixel (){
 
+        /*
+        intakeClaw.setPosition(0);
+         */
 
     }
 }
