@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
@@ -17,16 +17,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
     private DcMotor leftBack;
     private DcMotor rightBack;
 
-    private Servo intakeservo;
-
-    private Servo wrist;
-
-
-    //private DcMotor intake;
-    //private DcMotor hook;
-    //private DcMotor horizontalArm;
-    //private DcMotor verticalArm;
-
+    private CRServo intakeClaw;
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
@@ -40,22 +31,14 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
     public void runOpMode() throws InterruptedException {
 
 
+        telemetry.addLine("if blue alliance hold button during init");
+
         // initialization of variables
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         leftBack.setDirection(DcMotor.Direction.REVERSE );
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        /*
-        intakeservo = hardwareMap.get(Servo.class, "intakeClaw");
-
-         */
-        //intake=hardwareMap.get(DcMotor.class, "intake");
-        //hook=hardwareMap.get(DcMotor.class, "hook");
-        //horizontalArm=hardwareMap.get(DcMotor.class, "horizontalArm");
-        //verticalArm=hardwareMap.get(DcMotor.class, "verticalArm");
-
-
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
 
 
@@ -69,42 +52,20 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         telemetry.addData("rightFront", rightFront.getPower());
         telemetry.addData("leftBack", leftBack.getPower());
         telemetry.addData("rightBack", rightBack.getPower());
-        telemetry.addData("intakeServo" , intakeservo.getPosition());
-        telemetry.addData("wrist", wrist.getPosition());
-
-       //Not used atm
-        //telemetry.addData("intake", intake.getPower());
-        //telemetry.addData("hook", hook.getPower());
-        //telemetry.addData("horizontalArm", horizontalArm.getPower());
-        //telemetry.addData("verticalArm", verticalArm.getPower());
-
+        telemetry.addData("intakeClaw" , intakeClaw.getPower());
 
         telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
 
         waitForStart();
 
-        //drive away from wall
-        drive(+drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, 500);
-
-
-        //Rotating 90 degrees right
-        drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1400);
-
-        //drive forward a square in a half
-        drive(+drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, 2000);
-
+        //drive forwards
+        drive(drivePow , drivePow , drivePow, drivePow , 1000);
 
         //Drop 2 pixels in backstage
         dropPixel();
 
-        //Closes claw after dropping pixels
-        closePixel();
-
-        //Strafe away from pixels so not touching lol
-        drive(+drivePow * REVERSE, -drivePow * REVERSE, drivePow * REVERSE, +drivePow * REVERSE, 1000);
-
         //Drive into backstage
-        drive(+drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, 1000);
+        drive(drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, 500);
 
         telemetry.update();
 
@@ -124,16 +85,9 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         sleep(10);
 
     }
-
-    public void closePixel () {
-        intakeservo.setPosition(0);
-    }
     public void dropPixel (){
-        intakeservo.setPosition(1);
-
-
-
-
+        intakeClaw.setPower(1);
+        sleep(1000);
 
     }
 }
