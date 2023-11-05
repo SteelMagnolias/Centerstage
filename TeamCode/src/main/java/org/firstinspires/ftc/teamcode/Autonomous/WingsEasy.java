@@ -4,7 +4,7 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
@@ -17,15 +17,8 @@ public class WingsEasy extends LinearOpMode{
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    //private DcMotor intake;
-    //private DcMotor hook;
-    //private DcMotor horizontalArm;
-    //private DcMotor verticalArm;
 
-    private Servo intakeClaw;
-
-    private Servo wrist;
-
+    private CRServo intakeClaw;
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
@@ -46,11 +39,7 @@ public class WingsEasy extends LinearOpMode{
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        //intake = hardwareMap.get(DcMotor.class, "intake");
-        //hook = hardwareMap.get(DcMotor.class, "hook");
-        //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
-        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
-        // intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
+        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
 
         leftBack.setDirection(DcMotor.Direction.REVERSE );
 
@@ -68,10 +57,6 @@ public class WingsEasy extends LinearOpMode{
         telemetry.addData("rightFront", rightFront.getPower());
         telemetry.addData("leftBack", leftBack.getPower());
         telemetry.addData("rightBack", rightBack.getPower());
-        //telemetry.addData("intake", intake.getPower());
-        //telemetry.addData("hook", hook.getPower());
-        //telemetry.addData("horizontalArm", horizontalArm.getPower());
-        //telemetry.addData("verticalArm", verticalArm.getPower());
 
 
         telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
@@ -80,19 +65,17 @@ public class WingsEasy extends LinearOpMode{
         waitForStart();
 
 
-        // drive forward until in line with flip door
-        drive(drivePow, drivePow, drivePow, drivePow, 5000);
+        // strafe inwards until in line with flip door
+        drive(-drivePow, +drivePow, +drivePow, -drivePow, 5000);
 
-        // rotate clockwise until intake faces door
+        // drive forward until through door and into backstage area tapes
         drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
 
-        // drive through door
-        drive(drivePow, drivePow, drivePow, drivePow, 7000);
-
         // drop pixel
+        dropPixel(1000);
 
-
-
+        // drive back a bit to make it clear to refs we aren't touching.
+        drive(-drivePow, -drivePow, -drivePow, -drivePow, 7000);
 
         // back up a little
         drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
@@ -114,11 +97,13 @@ public class WingsEasy extends LinearOpMode{
         sleep(10);
     }
     public void closePixel () {
-        intakeClaw.setPosition(0);
+        intakeClaw.setPower(-1);
     }
 
-    public void dropPixel (){
-        intakeClaw.setPosition(1);
+    public void dropPixel (int time){
+        intakeClaw.setPower(1);
+        sleep(time);
+        intakeClaw.setPower(0);
 
     }
 }
