@@ -24,6 +24,8 @@ public class WingsEasy extends LinearOpMode{
 
     private Servo intakeClaw;
 
+    private Servo wrist;
+
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
@@ -88,7 +90,9 @@ public class WingsEasy extends LinearOpMode{
         drive(drivePow, drivePow, drivePow, drivePow, 7000);
 
         // drop pixel
-        dropPixel();
+
+
+
 
         // back up a little
         drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
@@ -109,13 +113,12 @@ public class WingsEasy extends LinearOpMode{
         rightBack.setPower(0);
         sleep(10);
     }
-
+    public void closePixel () {
+        intakeClaw.setPosition(0);
+    }
 
     public void dropPixel (){
-
-        /*
-        intakeClaw.setPosition(0);
-         */
+        intakeClaw.setPosition(1);
 
     }
 }

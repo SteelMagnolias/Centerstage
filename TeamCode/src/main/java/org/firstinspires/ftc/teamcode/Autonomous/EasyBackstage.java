@@ -16,10 +16,12 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    /*
+
     private Servo intakeservo;
 
-     */
+    private Servo wrist;
+
+
     //private DcMotor intake;
     //private DcMotor hook;
     //private DcMotor horizontalArm;
@@ -67,9 +69,10 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         telemetry.addData("rightFront", rightFront.getPower());
         telemetry.addData("leftBack", leftBack.getPower());
         telemetry.addData("rightBack", rightBack.getPower());
-       /*
         telemetry.addData("intakeServo" , intakeservo.getPosition());
-        */
+        telemetry.addData("wrist", wrist.getPosition());
+
+       //Not used atm
         //telemetry.addData("intake", intake.getPower());
         //telemetry.addData("hook", hook.getPower());
         //telemetry.addData("horizontalArm", horizontalArm.getPower());
@@ -90,10 +93,13 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         //drive forward a square in a half
         drive(+drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, 2000);
 
-        /*
+
         //Drop 2 pixels in backstage
         dropPixel();
-*/
+
+        //Closes claw after dropping pixels
+        closePixel();
+
         //Strafe away from pixels so not touching lol
         drive(+drivePow * REVERSE, -drivePow * REVERSE, drivePow * REVERSE, +drivePow * REVERSE, 1000);
 
@@ -119,13 +125,15 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 
     }
 
-/*
-    public void dropPixel (){
+    public void closePixel () {
         intakeservo.setPosition(0);
+    }
+    public void dropPixel (){
+        intakeservo.setPosition(1);
+
 
 
 
 
     }
-    */
 }

@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 
 @TeleOp (name = "Drive" , group = "Iterative Opmode")
@@ -26,8 +27,8 @@ public class Drive extends OpMode {
 
 
     // servos
-    private Servo intakeClaw;
-    private Servo wrist;
+    private CRServo intakeClaw;
+    private CRServo wrist;
 
 
     // sensors
@@ -35,6 +36,8 @@ public class Drive extends OpMode {
 
 
     // cameras
+
+
 
 
     // bot constraints:
@@ -47,6 +50,7 @@ public class Drive extends OpMode {
 
     // other variables
     double pow; // motor power for wheels
+    double armPow = 0.5; // arm power
     double theta; // angle of wheels joystick
     boolean clawClosed; // tells whether the claw is closed or not
     boolean wristOut;
@@ -78,13 +82,12 @@ public class Drive extends OpMode {
         //hook = hardwareMap.get(DcMotor.class, "hook");
         //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
 
-        intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        intakeClaw.setDirection(Servo.Direction.REVERSE);
-        intakeClaw.setPosition(0); // closed
-        wrist = hardwareMap.get(Servo.class, "wrist");
-        wrist.setPosition(0);
+        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
+        wrist = hardwareMap.get(CRServo.class, "wrist");
+        wrist.setDirection(DcMotor.Direction.REVERSE);
         clawClosed = true;
         wristOut = false;
 
@@ -123,7 +126,10 @@ public class Drive extends OpMode {
         boolean x2 = gamepad2.x; // this is the value of the x button on gamepad2
         boolean y2 = gamepad2.y; // this is the value of the y button on gamepad2
         boolean b2 = gamepad2.b; // this is the value of the b button on gamepad2
-
+        boolean rb2 = gamepad2.right_bumper; // this is the value of the right bumper
+        boolean lb2 = gamepad2.left_bumper; // this is the value of the left bumper
+        boolean buttonup2 = gamepad2.dpad_up;
+        boolean buttondown2 = gamepad2.dpad_down;
 
         // telemetry
         telemetry.addData("Gamepad:", 1);
@@ -152,6 +158,9 @@ public class Drive extends OpMode {
         telemetry.addData("b2", b2);
         telemetry.addData("x2", x2);
         telemetry.addData("y2", y2);
+        telemetry.addData("lb2", lb2);
+        telemetry.addData("rb2", rb2);
+
 
 
         // wheels
@@ -311,16 +320,23 @@ public class Drive extends OpMode {
           horizontalArm.setPower(0);
       }
 
-         */
+      */
 
-
+        //pow=0.8;
       // ball and socket movement (vertical)
       if (Math.abs(lefty2) > 0.1) {
-          verticalArm.setPower(pow * lefty2);
+          verticalArm.setPower(armPow * lefty2);
       }
+        if (buttonup2 ){
+            verticalArm.setPower(armPow*0.5);
+        }
+        if (buttondown2) {
+            verticalArm.setPower(armPow*-0.5);
+
+        }
       else {
           // no movement
-          verticalArm.setPower(0);
+          verticalArm.setPower(0.05); // just enough to keep from falling
       }
 
 
@@ -334,10 +350,10 @@ public class Drive extends OpMode {
       else {
           intake.setPower(0);
       }
+*/
 
 
-
-
+/*
       // climbing
       if (rb2) {
           // lift go up
@@ -353,37 +369,28 @@ public class Drive extends OpMode {
 
 */
 
-      if(b2) {
-          // claw open / close
-          if (clawClosed) {
-              // open claw
-              intakeClaw.setPosition(1);
-              clawClosed = true;
-          }
-          else if (!clawClosed) {
-              // close claw
-              intakeClaw.setPosition(0);
-              clawClosed = true;
-          }
+      if (rb2) {
+        // open claw
+        intakeClaw.setPower(1);
+      }
+      else if (lb2) {
+          // close claw
+          intakeClaw.setPower(-1);
+      }
+      else {
+          intakeClaw.setPower(0);
       }
 
-
-      if (x2) {
-          if (wristOut) {
-              // wrist out, let's tuck it in
-              wrist.setPosition(0);
-
-              // change status
-              wristOut = false;
-          }
-          else {
-              // wrist tucked in, let's bring it out
-              wrist.setPosition(1);
-
-              // change status
-              wristOut = true;
-          }
-      }
+      // move wrist
+        if (righty2 > 0.1) {
+            wrist.setPower(1);
+        }
+        else if (righty2 < -0.1) {
+            wrist.setPower(-1);
+        }
+        else {
+            wrist.setPower(0);
+        }
 
 
 /*
