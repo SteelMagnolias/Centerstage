@@ -324,16 +324,17 @@ public class Drive extends OpMode {
 
         //pow=0.8;
       // ball and socket movement (vertical)
+
       if (Math.abs(lefty2) > 0.1) {
           verticalArm.setPower(armPow * lefty2);
       }
-        if (buttonup2 ){
-            verticalArm.setPower(armPow*0.5);
-        }
-        if (buttondown2) {
-            verticalArm.setPower(armPow*-0.5);
+      else if (buttonup2 ){
+          verticalArm.setPower(armPow*0.5);
+      }
+      else if (buttondown2) {
+          verticalArm.setPower(armPow*-0.5);
 
-        }
+      }
       else {
           // no movement
           verticalArm.setPower(0.05); // just enough to keep from falling

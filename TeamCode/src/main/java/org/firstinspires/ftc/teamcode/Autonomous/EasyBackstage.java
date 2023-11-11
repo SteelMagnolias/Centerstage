@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         leftBack.setDirection(DcMotor.Direction.REVERSE );
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
+        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
 
 
         if (allianceSwitch.isPressed()) {
@@ -59,13 +60,13 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         waitForStart();
 
         //drive forwards
-        drive(drivePow , drivePow , drivePow, drivePow , 1000);
+        drive(drivePow , drivePow , drivePow, drivePow , 1500);
 
         //Drop 2 pixels in backstage
         dropPixel();
 
         //Drive into backstage
-        drive(drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, 500);
+        drive(drivePow, drivePow, drivePow, drivePow, 500);
 
         telemetry.update();
 
@@ -88,6 +89,6 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
     public void dropPixel (){
         intakeClaw.setPower(1);
         sleep(1000);
-
+        intakeClaw.setPower(0);
     }
 }

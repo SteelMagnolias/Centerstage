@@ -23,7 +23,7 @@ public class WingsEasy extends LinearOpMode{
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
 
-    private double drivePow=0.3;
+    private double drivePow=1;
 
 
     // constant reverse, if we are on the blue side, then will be -1
@@ -50,6 +50,8 @@ public class WingsEasy extends LinearOpMode{
         if (allianceSwitch.isPressed()) {
             // if alliance switch is pressed, we are on the blue alliance
             REVERSE = -1;
+            telemetry.addData("REVERSE", REVERSE);
+            telemetry.update();
         }
 
 
@@ -66,19 +68,20 @@ public class WingsEasy extends LinearOpMode{
 
 
         // strafe inwards until in line with flip door
-        drive(-drivePow, +drivePow, +drivePow, -drivePow, 5000);
+        drive(-drivePow*REVERSE, +drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 3900);
+
+        //Turn to correct strafe
+        drive(+drivePow*REVERSE, -drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 110);
 
         // drive forward until through door and into backstage area tapes
-        drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
+        drive(+drivePow , +drivePow , +drivePow , +drivePow , 5000);
 
         // drop pixel
-        dropPixel(1000);
+        dropPixel(2000);
 
-        // drive back a bit to make it clear to refs we aren't touching.
-        drive(-drivePow, -drivePow, -drivePow, -drivePow, 7000);
 
         // back up a little
-        drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
+        drive(drivePow, drivePow, drivePow, drivePow, 500);
 
         telemetry.update();
     }
@@ -101,7 +104,7 @@ public class WingsEasy extends LinearOpMode{
     }
 
     public void dropPixel (int time){
-        intakeClaw.setPower(1);
+        intakeClaw.setPower(-1);
         sleep(time);
         intakeClaw.setPower(0);
 
