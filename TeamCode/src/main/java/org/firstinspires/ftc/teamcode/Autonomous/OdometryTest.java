@@ -6,11 +6,22 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.*;
 
 
-@Autonomous(name = "OdometryTest", group="Linear OpMode")
+@Autonomous(name = "OdometryTest", group="Iterative OpMode")
 public class OdometryTest extends OpMode {
 
+    // declare motors
+    private DcMotor leftFront;
+    private DcMotor rightFront;
+    private DcMotor leftBack;
+    private DcMotor rightBack;
 
-    // initializations stuff
+
+    // bot constraints:
+    double trackWidth = 21.5; //(cm)
+    double yOffSet = 10.5; //(cm)
+    double wheelRadius = 4.8; // centimeters
+    double cpr = 8192; // counts per rotation
+    double wheelCircumference = 2 * Math.PI * wheelRadius;
 
 
     @Override
