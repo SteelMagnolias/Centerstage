@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
-@Autonomous(name = "EasyBackstage", group="Linear OpMode")
-    public class EasyBackstage extends LinearOpMode {
+@Autonomous(name = "FirstCompBackstage", group="Linear OpMode")
+    public class FirstCompBackstage extends LinearOpMode {
 
 
     // declare motors

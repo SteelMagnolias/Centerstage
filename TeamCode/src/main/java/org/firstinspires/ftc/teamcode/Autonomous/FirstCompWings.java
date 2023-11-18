@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
-@Autonomous(name = "WingsEasy", group="Linear OpMode")
-public class WingsEasy extends LinearOpMode{
+@Autonomous(name = "FirstCompWings", group="Linear OpMode")
+public class FirstCompWings extends LinearOpMode{
 
 
     // declare motors

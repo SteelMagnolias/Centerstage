@@ -35,9 +35,9 @@ public class AprilTagForAuton extends LinearOpMode {
     // turn speed control
     final double turnGain = 0.01;
     //max drive speed
-    final double maxDrive = 0.5;
+    final double maxDrive = 0.3;
     //max strafe speed
-    final double maxStrafe = 0.5;
+    final double maxStrafe = 0.3;
     //max turn speed
     final double maxTurn = 0.3;
 
@@ -93,34 +93,36 @@ public class AprilTagForAuton extends LinearOpMode {
         waitForStart();
 
         //drive through gate/to middle of backstage side
+        //turn too far abiut 45 degrees face the corner of the tile
 
         while (rangeError!= 0 && headingError != 0 && yawError != 0 ) {
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-                for (AprilTagDetection detection : currentDetections) {
-                    if (detection.metadata != null) {
-                        if ((desiredTagID == detection.id)) {
-                            targetFound = true;
-                            desiredTag = detection;
-                            break;
-                        } else {
-                            telemetry.addLine("Not the right tag");
-                        }
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection.metadata != null) {
+                    if ((desiredTagID == detection.id)) {
+                        targetFound = true;
+                        desiredTag = detection;
+                        break;
                     } else {
-                        telemetry.addLine("cant find tag id");
+                        telemetry.addLine("Not the right tag");
                     }
+                } else {
+                    telemetry.addLine("cant find tag id");
                 }
-                if (targetFound = false) {
-                    //turn twords tag more
-                }
-            rangeError = (desiredTag.ftcPose.range - desiredDistance);
-            headingError = desiredTag.ftcPose.bearing;
-            yawError = desiredTag.ftcPose.yaw;
+            }
+            if (targetFound = false) {
+                //turn twords tag more
+            } else if (targetFound = true) {
+                rangeError = (desiredTag.ftcPose.range - desiredDistance);
+                headingError = desiredTag.ftcPose.bearing;
+                yawError = desiredTag.ftcPose.yaw;
 
-            drive = Range.clip(rangeError * driveGain, -maxDrive, maxDrive);
-            turn = Range.clip(headingError * turnGain, -maxTurn, maxTurn);
-            strafe = Range.clip(-yawError * strafeGain, -maxStrafe, maxStrafe);
+                drive = Range.clip(rangeError * driveGain, -maxDrive, maxDrive);
+                turn = Range.clip(headingError * turnGain, -maxTurn, maxTurn);
+                strafe = Range.clip(-yawError * strafeGain, -maxStrafe, maxStrafe);
 
-            tagDrive(drive, turn, strafe);
+                tagDrive(drive, turn, strafe);
+            }
         }
         //place pixel on board and park
     }

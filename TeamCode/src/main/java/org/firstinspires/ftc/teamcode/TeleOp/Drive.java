@@ -19,16 +19,13 @@ public class Drive extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    //private DcMotor intake;
     //private DcMotor hook;
-    //private DcMotor horizontalArm;
     private DcMotor verticalArm;
 
 
 
     // servos
     private CRServo intakeClaw;
-    private CRServo wrist;
 
 
     // sensors
@@ -36,8 +33,6 @@ public class Drive extends OpMode {
 
 
     // cameras
-
-
 
 
     // bot constraints:
@@ -52,8 +47,6 @@ public class Drive extends OpMode {
     double pow; // motor power for wheels
     double armPow = 0.5; // arm power
     double theta; // angle of wheels joystick
-    boolean clawClosed; // tells whether the claw is closed or not
-    boolean wristOut;
     double prevLeftEncoder = 0;
     double prevRightEncoder = 0;
     double currentLeftEncoder = 0;
@@ -75,22 +68,13 @@ public class Drive extends OpMode {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
 
-
         // reverse motors
         leftBack.setDirection(DcMotor.Direction.REVERSE );
-        //intake = hardwareMap.get(DcMotor.class, "intake");
         //hook = hardwareMap.get(DcMotor.class, "hook");
-        //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
-
         intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
-        wrist = hardwareMap.get(CRServo.class, "wrist");
-        wrist.setDirection(DcMotor.Direction.REVERSE);
-        clawClosed = true;
-        wristOut = false;
-
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -309,21 +293,7 @@ public class Drive extends OpMode {
         if (b1 && y1) {
             stop();
         }
-        /*
-      pow = 0.4;
-      // ball and socket movement (horizontal)
-      if (Math.abs(leftx2) > 0.1) {
-          horizontalArm.setPower(pow * leftx2);
-      }
-      else {
-          // no movement
-          horizontalArm.setPower(0);
-      }
 
-      */
-
-        //pow=0.8;
-      // ball and socket movement (vertical)
 
       if (Math.abs(lefty2) > 0.1) {
           verticalArm.setPower(armPow * lefty2);
@@ -337,25 +307,11 @@ public class Drive extends OpMode {
       }
       else {
           // no movement
-          verticalArm.setPower(0.05); // just enough to keep from falling
+          verticalArm.setPower(0); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
       }
 
 
-      /*
-      pow = 0.9;
-      // intake in out controls
-      if (Math.abs(righty2) > 0.1) {
-          // intake or outtake
-          intake.setPower(pow * righty2);
-      }
-      else {
-          intake.setPower(0);
-      }
-*/
-
-
-/*
-      // climbing
+    /* // climbing
       if (rb2) {
           // lift go up
           automatedLift();
@@ -365,10 +321,7 @@ public class Drive extends OpMode {
       if(lb2) {
           // release lift
           releaseLift();
-      }
-
-
-*/
+      }*/
 
       if (rb2) {
         // open claw
@@ -382,29 +335,13 @@ public class Drive extends OpMode {
           intakeClaw.setPower(0);
       }
 
-      // move wrist
-        if (righty2 > 0.1) {
-            wrist.setPower(1);
-        }
-        else if (righty2 < -0.1) {
-            wrist.setPower(-1);
-        }
-        else {
-            wrist.setPower(0);
-        }
 
-
-/*
-      if (a2) {
+    /* if (a2) {
           // throw plane
           throwPlane();
-      }
+      } */
 
-
-       */
-
-        /*
-        switch(x3){
+        /* switch(x3){
             case 0:
                 //raise lift
                 break;
@@ -414,9 +351,7 @@ public class Drive extends OpMode {
             default:
                 //raise bot
                 break;
-        }
-
-         */
+        } */
 
 
     }
@@ -427,6 +362,7 @@ public class Drive extends OpMode {
 
     public void automatedLift() {
         // bring lift up for hang
+
     }
 
 

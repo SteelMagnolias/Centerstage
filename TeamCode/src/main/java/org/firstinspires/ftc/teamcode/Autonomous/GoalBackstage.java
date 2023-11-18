@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
-
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 
-@Autonomous(name = "Wings", group="Linear OpMode")
-public class Wings extends LinearOpMode{
+@Autonomous(name = "Backstage", group="Linear OpMode")
+public class GoalBackstage extends LinearOpMode{
 
 
     // declare motors
@@ -40,14 +39,14 @@ public class Wings extends LinearOpMode{
 
 
         // initialization of variables
-        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
-        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
-        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
-        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        //intake = hardwareMap.get(DcMotor.class, "intake");
-        //hook = hardwareMap.get(DcMotor.class, "hook");
-        //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
-        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        leftFront=hardwareMap.get(DcMotor.class, "leftFront");
+        rightFront=hardwareMap.get(DcMotor.class, "rightFront");
+        leftBack=hardwareMap.get(DcMotor.class, "leftBack");
+        rightBack=hardwareMap.get(DcMotor.class, "rightBack");
+        //intake=hardwareMap.get(DcMotor.class, "intake");
+        //hook=hardwareMap.get(DcMotor.class, "hook");
+        //horizontalArm=hardwareMap.get(DcMotor.class, "horizontalArm");
+        //verticalArm=hardwareMap.get(DcMotor.class, "verticalArm");
 
 
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
@@ -72,50 +71,49 @@ public class Wings extends LinearOpMode{
         telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
 
 
+
+
         waitForStart();
-        if(spikeMark==1) {
-            //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
-            //right strafe
+        if(spikeMark==1){
+            // left
+            // 90 degree counter-clockwise turn
+            drive(-drivePow * REVERSE,+drivePow * REVERSE,-drivePow * REVERSE,+drivePow * REVERSE, 1000);
+            // strafe right
             drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
             // change as you will
             drive(drivePow, drivePow, drivePow, drivePow, 1000);
-            //drop purple pixel
+            // drop purple pixel
             dropPixel();
-            //left strafe
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, -drivePow *REVERSE, 1000);
-            //turn clockwise 180
-            drive(+drivePow, -drivePow, +drivePow, -drivePow, 2000);
+            // strafe left
+            drive(-drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
+            // 180 degree clockwise turn
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
+
+
         }
-        else if(spikeMark==2) {
-            //drive forward
+        else if(spikeMark==2){
+            // drive forward
             drive(drivePow, drivePow, drivePow, drivePow, 1000);
             // change as you will
             drive(drivePow, drivePow, drivePow, drivePow, 1000);
-            //drop purple pixel
             dropPixel();
-            //drive backward
+            // drive backward
             drive(-drivePow, -drivePow, -drivePow, -drivePow, 1000);
-            //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
+            // 90 degree clockwise turn
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
         }
         else{
-            //90 degree clockwise turn
-            drive(-drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 10000);
+            // 90 degree clockwise turn
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 1000);
             // change as you will
-            drive(drivePow, drivePow, drivePow, drivePow, 10000);
-            //drop purple pixel
+            drive(drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, drivePow * REVERSE, 1000);
             dropPixel();
-            //strafe right
-            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 10000);
+            // strafe right
+            drive(+drivePow * REVERSE, -drivePow * REVERSE, -drivePow * REVERSE, +drivePow * REVERSE, 1000);
         }
-        //drive backwards almost 1 square
-        drive(-drivePow, -drivePow, -drivePow, -drivePow, 750);
-        //strafe left
-        drive(-drivePow * REVERSE, +drivePow * REVERSE, +drivePow * REVERSE, -drivePow * REVERSE, 2000);
-        //drive forward
-        drive(drivePow, drivePow, drivePow, drivePow, 5000);
-        //drop yellow pixel
+        // drive forward 2 square
+        drive(drivePow, drivePow, drivePow, drivePow, 2000);
+        // drop yellow pixel
         dropPixel();
 
 
