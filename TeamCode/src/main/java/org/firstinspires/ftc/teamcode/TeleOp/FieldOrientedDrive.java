@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
 @TeleOp (name = "FieldOrientedDrive" , group = "Iterative Opmode")
@@ -16,10 +16,8 @@ public class FieldOrientedDrive extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    //private DcMotor intake;
     //private DcMotor hook;
-    //private DcMotor horizontalArm;
-    //private DcMotor verticalArm;
+    private DcMotor verticalArm;
 
 
     // encoders (really motors), but clarity
@@ -29,7 +27,7 @@ public class FieldOrientedDrive extends OpMode {
 
 
     // servos
-    //private Servo intakeClaw;
+    private CRServo intakeClaw;
 
 
     // sensors
@@ -50,7 +48,6 @@ public class FieldOrientedDrive extends OpMode {
     // other variables
     double pow; // motor power for wheels
     double theta = 0; // angle of wheels joystick
-    boolean clawClosed; // tells whether the claw is closed or not
     double botHeading; // angle of robot on field according to encoders
     double prevLeftEncoder = 0;
     double prevRightEncoder = 0;
@@ -75,17 +72,12 @@ public class FieldOrientedDrive extends OpMode {
 
 
         // reverse motors
-        leftBack.setDirection(DcMotorSimple.Direction.REVERSE );
-        //intake = hardwareMap.get(DcMotor.class, "intake");
+        leftFront.setDirection(DcMotor.Direction.REVERSE );
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
         //hook = hardwareMap.get(DcMotor.class, "hook");
-        //horizontalArm = hardwareMap.get(DcMotor.class, "horizontalArm");
-        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
 
-
-        //intakeClaw = hardwareMap.get(Servo.class, "intakeClaw");
-        //intakeClaw.setPosition(0); // closed
-        clawClosed = true;
-
+        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
 
@@ -163,19 +155,36 @@ public class FieldOrientedDrive extends OpMode {
         if (a1) pow = 1; // turbo mode
         else pow =0.5;
 
-        // find bot heading
-        botHeading = -1 * getAngle();
+        if (leftx1 > 0.1 || lefty1 > 0.1 || rightx1 > 0.1 ) {
+            // find bot heading
+            botHeading = -1 * getAngle();
+            //turning variable
+            double rx = rightx1;
 
-        // find rotated x and y using rotation matrix
-        rotX = leftx1*Math.cos(botHeading) - lefty1*Math.sin(botHeading);
-        rotY = leftx1*Math.sin(botHeading) + lefty1*Math.cos(botHeading);
+            // find rotated x and y using rotation matrix
+            rotX = leftx1 * Math.cos(botHeading) - lefty1 * Math.sin(botHeading);
+            rotY = leftx1 * Math.sin(botHeading) + lefty1 * Math.cos(botHeading);
 
-        // denominator: scales to the ratio of the sides to determine powers (max of 1)
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rightx1), 1);
+            // denominator: scales to the ratio of the sides to determine powers (max of 1)
+            double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
 
-        // set powers of wheels
-        //double frontLeftPower = (rotY + rotX + rx) / denominator;
+            // set powers of wheels
+            double frontLeftPower = (rotY + rotX + rx) / denominator;
+            double backLeftPower = (rotY - rotX + rx) / denominator;
+            double frontRightPower = (rotY - rotX - rx) / denominator;
+            double backRightPower = (rotY + rotX - rx) / denominator;
 
+            leftFront.setPower(frontLeftPower);
+            leftBack.setPower(backLeftPower);
+            rightFront.setPower(frontRightPower);
+            rightBack.setPower(backRightPower);
+        }
+        else{
+            leftFront.setPower(0);
+            leftBack.setPower(0);
+            rightFront.setPower(0);
+            rightBack.setPower(0);
+        }
 
         // Below: precision (slower) movement
         pow *= 0.5;
@@ -231,19 +240,8 @@ public class FieldOrientedDrive extends OpMode {
         }
 
 
-      /*
-      pow = 0.4;
-      // ball and socket movement (horizontal)
-      if (Math.abs(leftx2) > 0.1) {
-          horizontalArm.setPower(pow * leftx2);
-      }
-      else {
-          // no movement
-          horizontalArm.setPower(0);
-      }
 
 
-      // ball and socket movement (vertical)
       if (Math.abs(lefty2) > 0.1) {
           verticalArm.setPower(pow * lefty2);
       }
@@ -257,14 +255,14 @@ public class FieldOrientedDrive extends OpMode {
       // intake in out controls
       if (Math.abs(righty2) > 0.1) {
           // intake or outtake
-          intake.setPower(pow * righty2);
+          intakeClaw.setPower(pow * righty2);
       }
       else {
-          intake.setPower(0);
+          intakeClaw.setPower(0);
       }
 
 
-
+/*
 
       // climbing
       if (y2) {
@@ -280,14 +278,7 @@ public class FieldOrientedDrive extends OpMode {
 
 
       if(b2) {
-          // claw open / close
-          if (clawClosed) {
-              // open claw
-              intakeClaw.setPosition(1);
-          }
-          else if (!clawClosed) {
-              // close claw
-              intakeClaw.setPosition(0);
+
           }
       }
 
@@ -298,7 +289,6 @@ public class FieldOrientedDrive extends OpMode {
       }
 
 
-       */
         switch(x3){
             case 0:
                 //raise lift
@@ -310,7 +300,7 @@ public class FieldOrientedDrive extends OpMode {
                 //raise bot
                 break;
         }
-
+*/
 
     }
     public void stop() {
