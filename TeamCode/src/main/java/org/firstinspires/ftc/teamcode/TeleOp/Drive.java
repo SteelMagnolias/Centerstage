@@ -25,7 +25,8 @@ public class Drive extends OpMode {
 
 
     // servos
-    private CRServo intakeClaw;
+    private CRServo intakeClawRight;
+    private CRServo intakeClawLeft;
 
 
     // sensors
