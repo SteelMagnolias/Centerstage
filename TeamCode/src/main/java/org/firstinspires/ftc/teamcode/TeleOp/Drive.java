@@ -74,7 +74,8 @@ public class Drive extends OpMode {
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
-        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
+        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
+        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -323,17 +324,15 @@ public class Drive extends OpMode {
           releaseLift();
       }*/
 
-      if (rb2) {
-        // open claw
-        intakeClaw.setPower(1);
-      }
-      else if (lb2) {
-          // close claw
-          intakeClaw.setPower(-1);
-      }
-      else {
-          intakeClaw.setPower(0);
-      }
+        if (Math.abs(righty2) > 0.1) {
+            // open claw
+            intakeClawLeft.setPower(1*righty2);
+            intakeClawRight.setPower(-1*righty2);
+        }
+        else {
+            intakeClawLeft.setPower(0);
+            intakeClawRight.setPower(0);
+        }
 
 
     /* if (a2) {
