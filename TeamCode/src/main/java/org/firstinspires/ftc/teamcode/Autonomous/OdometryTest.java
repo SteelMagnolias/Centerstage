@@ -128,9 +128,9 @@ public class OdometryTest extends OpMode {
         double rawRightEncoder = rightEncoder.getCurrentPosition();
         double rawBackEncoder = backEncoder.getCurrentPosition();
 
-        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelRadius;
-        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelRadius;
-        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelRadius;
+        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference;
+        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference;
+        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference;
 
         // find change in theta!
         double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
