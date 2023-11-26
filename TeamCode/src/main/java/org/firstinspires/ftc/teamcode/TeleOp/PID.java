@@ -33,9 +33,19 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
         @Override
         public void loop() {
-            double power = PIDcontrol(-500, motor.getCurrentPosition());
+            double power = PIDcontrol(-3000, motor.getCurrentPosition());
             motor.setPower(power);
 
+            double actualPower = motor.getPower();
+
+
+
+            telemetry.addData("Status: Timer Stop", 0);
+            telemetry.addData("Position", motor.getCurrentPosition());
+            telemetry.addData("Motor Power", power);
+            telemetry.addData("Actual Power", actualPower);
+            telemetry.addData("Status: Running",0);
+            telemetry.update();
 
 //            a1 = gamepad1.b;
 //
