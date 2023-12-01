@@ -116,6 +116,8 @@ public class Drive extends OpMode {
         boolean lb2 = gamepad2.left_bumper; // this is the value of the left bumper
         boolean buttonup2 = gamepad2.dpad_up;
         boolean buttondown2 = gamepad2.dpad_down;
+        double r_trig2 = gamepad2.right_trigger;
+        double l_trig2 = gamepad2.left_trigger;
 
         // telemetry
         telemetry.addData("Gamepad:", 1);
@@ -329,6 +331,12 @@ public class Drive extends OpMode {
             // open claw
             intakeClawLeft.setPower(1*righty2);
             intakeClawRight.setPower(-1*righty2);
+        }
+        else if (r_trig2 > 0.1) {
+            intakeClawRight.setPower(-1 *r_trig2);
+        }
+        else if (l_trig2 > 0.1) {
+            intakeClawLeft.setPower(1 *l_trig2);
         }
         else {
             intakeClawLeft.setPower(0);
