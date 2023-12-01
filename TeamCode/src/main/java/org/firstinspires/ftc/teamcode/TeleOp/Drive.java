@@ -36,28 +36,10 @@ public class Drive extends OpMode {
     // cameras
 
 
-    // bot constraints:
-    double trackWidth = 21.5; //(cm)
-    double yOffSet = 10.5; //(cm)
-    double wheelRadius = 4.8; // centimeters
-    double cpr = 8192; // counts per rotation
-    double wheelCircumference = 2 * Math.PI * wheelRadius;
-
-
     // other variables
     double pow; // motor power for wheels
     double armPow = 0.5; // arm power
     double theta; // angle of wheels joystick
-    double prevLeftEncoder = 0;
-    double prevRightEncoder = 0;
-    double currentLeftEncoder = 0;
-    double currentRightEncoder = 0;
-
-
-    // rotated x and y values for field-centric drive
-    double rotX;
-    double rotY;
-    int x3;
 
 
 
