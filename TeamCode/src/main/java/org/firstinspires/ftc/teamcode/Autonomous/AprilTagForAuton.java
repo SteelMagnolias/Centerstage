@@ -35,11 +35,11 @@ public class AprilTagForAuton extends LinearOpMode {
     // turn speed control
     final double turnGain = 0.01;
     //max drive speed
-    final double maxDrive = 0.3;
+    final double maxDrive = 0.1;
     //max strafe speed
-    final double maxStrafe = 0.3;
+    final double maxStrafe = 0.1;
     //max turn speed
-    final double maxTurn = 0.3;
+    final double maxTurn = 0.1;
 
     double rangeError = -1;
     double headingError = -1;
@@ -72,7 +72,9 @@ public class AprilTagForAuton extends LinearOpMode {
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
 
-        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.REVERSE);
 
         if (allianceSwitch.isPressed()) {
             // if alliance switch is pressed, we are on the blue alliance and desired tag is changed
@@ -117,13 +119,29 @@ public class AprilTagForAuton extends LinearOpMode {
                 headingError = desiredTag.ftcPose.bearing;
                 yawError = desiredTag.ftcPose.yaw;
 
+                telemetry.addData("range error", rangeError);
+                telemetry.addData("heading error", headingError);
+                telemetry.addData("yaw error", yawError);
+
                 drive = Range.clip(rangeError * driveGain, -maxDrive, maxDrive);
                 turn = Range.clip(headingError * turnGain, -maxTurn, maxTurn);
                 strafe = Range.clip(-yawError * strafeGain, -maxStrafe, maxStrafe);
 
+                telemetry.addData("forwards value", drive);
+                telemetry.addData("turn value", turn);
+                telemetry.addData("strafe value", strafe);
+
                 tagDrive(drive, turn, strafe);
+
+                apriltagTelemetry();
+
             }
         }
+
+        leftFront.setPower(0);
+        leftBack.setPower(0);
+        rightBack.setPower(0);
+        rightFront.setPower(0);
         //place pixel on board and park
     }
 
