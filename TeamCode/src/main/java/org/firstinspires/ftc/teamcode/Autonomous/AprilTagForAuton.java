@@ -35,15 +35,15 @@ public class AprilTagForAuton extends LinearOpMode {
     // turn speed control
     final double turnGain = 0.01;
     //max drive speed
-    final double maxDrive = 0.1;
+    final double maxDrive = 0.1875;
     //max strafe speed
-    final double maxStrafe = 0.1;
+    final double maxStrafe = 0.1875;
     //max turn speed
-    final double maxTurn = 0.1;
+    final double maxTurn = 0.1125;
 
-    double rangeError = -1;
-    double headingError = -1;
-    double yawError = -1;
+    double rangeError = -2;
+    double headingError = -2;
+    double yawError = -2;
 
     // declare motors
     private DcMotor leftFront;
@@ -97,7 +97,7 @@ public class AprilTagForAuton extends LinearOpMode {
         //drive through gate/to middle of backstage side
         //turn too far abiut 45 degrees face the corner of the tile
 
-        while (rangeError!= 0 && headingError != 0 && yawError != 0 ) {
+        while (rangeError < -1 || rangeError > 1 || headingError < -1 || headingError > 1 || yawError < -1 || yawError > 1) {
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.metadata != null) {
@@ -107,13 +107,17 @@ public class AprilTagForAuton extends LinearOpMode {
                         break;
                     } else {
                         telemetry.addLine("Not the right tag");
+                        targetFound = false;
                     }
                 } else {
                     telemetry.addLine("cant find tag id");
                 }
             }
             if (targetFound = false) {
-                //turn twords tag more
+                leftFront.setPower(0);
+                leftBack.setPower(0);
+                rightBack.setPower(0);
+                rightFront.setPower(0);
             } else if (targetFound = true) {
                 rangeError = (desiredTag.ftcPose.range - desiredDistance);
                 headingError = desiredTag.ftcPose.bearing;
@@ -244,5 +248,10 @@ public class AprilTagForAuton extends LinearOpMode {
         rightFront.setPower(rightFrontPower);
         leftBack.setPower(leftBackPower);
         rightBack.setPower(rightBackPower);
+
+        telemetry.addData("left front power", leftFrontPower);
+        telemetry.addData("left back power", leftBackPower);
+        telemetry.addData("right back power", rightBackPower);
+        telemetry.addData("right front power", rightFrontPower);
     }
 }

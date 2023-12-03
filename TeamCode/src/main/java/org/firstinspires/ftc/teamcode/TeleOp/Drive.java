@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 
 
 @TeleOp (name = "Drive" , group = "Iterative Opmode")
@@ -19,8 +20,9 @@ public class Drive extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    //private DcMotor hook;
+    private DcMotor hook;
     private DcMotor verticalArm;
+    private DcMotor hangArm;
 
 
 
@@ -31,6 +33,7 @@ public class Drive extends OpMode {
 
     // sensors
     //private DistanceSensor distanceSensor;
+    private AnalogInput potentiometer;
 
 
     // cameras
@@ -41,6 +44,11 @@ public class Drive extends OpMode {
     double armPow = 0.5; // arm power
     double theta; // angle of wheels joystick
 
+    //int liftStep = 0; // step in lifting process
+
+    // potentiometer limits
+    //double liftUpVoltage = 0;
+    //double liftDownVoltage = 0;
 
 
 
@@ -53,12 +61,15 @@ public class Drive extends OpMode {
 
         // reverse motors
         leftBack.setDirection(DcMotor.Direction.REVERSE );
-        //hook = hardwareMap.get(DcMotor.class, "hook");
+        hook = hardwareMap.get(DcMotor.class, "hook");
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+
+        hangArm = hardwareMap.get(DcMotor.class, "hangArm");
+        hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -101,6 +112,9 @@ public class Drive extends OpMode {
         double r_trig2 = gamepad2.right_trigger;
         double l_trig2 = gamepad2.left_trigger;
 
+        // sensor readings
+        double potentiometerVoltage = potentiometer.getVoltage();
+
         // telemetry
         telemetry.addData("Gamepad:", 1);
         telemetry.addData("lefty1", lefty1);
@@ -130,6 +144,9 @@ public class Drive extends OpMode {
         telemetry.addData("y2", y2);
         telemetry.addData("lb2", lb2);
         telemetry.addData("rb2", rb2);
+
+        telemetry.addData("Other:", "Sensors");
+        telemetry.addData("potentiometerVoltage", potentiometerVoltage);
 
 
 
@@ -296,29 +313,26 @@ public class Drive extends OpMode {
           verticalArm.setPower(0); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
       }
 
-
-    /* // climbing
-      if (rb2) {
-          // lift go up
-          automatedLift();
-      }
-
-
-      if(lb2) {
-          // release lift
-          releaseLift();
-      }*/
-
         if (Math.abs(righty2) > 0.1) {
-            // open claw
-            intakeClawLeft.setPower(1*righty2);
-            intakeClawRight.setPower(-1*righty2);
+            // lift hanging arm
+            hangArm.setPower(righty2 * 0.5);
         }
-        else if (r_trig2 > 0.1) {
-            intakeClawRight.setPower(-1 *r_trig2);
+        else {
+            hangArm.setPower(0);
+        }
+
+
+        if (r_trig2 > 0.1) {
+            intakeClawRight.setPower(1 *r_trig2);
         }
         else if (l_trig2 > 0.1) {
-            intakeClawLeft.setPower(1 *l_trig2);
+            intakeClawLeft.setPower(-1 *l_trig2);
+        }
+        else if (lb2) {
+            intakeClawLeft.setPower(l_trig2);
+        }
+        else if (rb2) {
+            intakeClawRight.setPower(r_trig2);
         }
         else {
             intakeClawLeft.setPower(0);
@@ -331,28 +345,48 @@ public class Drive extends OpMode {
           throwPlane();
       } */
 
-        /* switch(x3){
+        /*
+        switch(liftStep){
             case 0:
-                //raise lift
-                break;
+                // not in a lift process
+                if (rb2) {
+                    liftStep++;
+                }
             case 1:
-                //drive forward
+                //raise lift
+                hangArm.setPower(0.5);
                 break;
+            case 2:
+                //drive forward
+
+                if (lb2) {
+                    // will skips to case 3
+                    liftStep++;
+                }
+                break;
+            case 3:
+                // lower lift (lifts bot)
+                break;
+            case 4:
+                // hold
+                hangArm.setPower(0);
+                break;
+            case 5:
+                // raise lift until back on ground
+                break;
+            case 6:
+                // back back up
             default:
                 //raise bot
                 break;
-        } */
+        }
+
+         */
 
 
     }
     public void stop() {
         // stop code
-    }
-
-
-    public void automatedLift() {
-        // bring lift up for hang
-
     }
 
 
