@@ -24,6 +24,8 @@ public class Drive extends OpMode {
     private DcMotor verticalArm;
     private DcMotor hangArm;
 
+    private Servo hangBolts;
+
 
 
     // servos
@@ -72,6 +74,7 @@ public class Drive extends OpMode {
 
         hangArm = hardwareMap.get(DcMotor.class, "hangArm");
         hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        hangBolts = hardwareMap.get(Servo.class, "hangBolts");
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -321,6 +324,13 @@ public class Drive extends OpMode {
         }
         else {
             hangArm.setPower(0);
+        }
+
+        if (b2) {
+            hangBolts.setPosition(1);
+        }
+        else if (x2) {
+            hangBolts.setPosition(0);
         }
 
 
