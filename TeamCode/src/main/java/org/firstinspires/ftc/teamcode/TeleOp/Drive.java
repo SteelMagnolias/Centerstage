@@ -44,11 +44,13 @@ public class Drive extends OpMode {
     double armPow = 0.5; // arm power
     double theta; // angle of wheels joystick
 
-    //int liftStep = 0; // step in lifting process
 
     // potentiometer limits
     //double liftUpVoltage = 0;
     //double liftDownVoltage = 0;
+    //int liftStep = 0; // step in lifting process
+
+    double liftPow = 0.5;
 
 
 
@@ -315,7 +317,7 @@ public class Drive extends OpMode {
 
         if (Math.abs(righty2) > 0.1) {
             // lift hanging arm
-            hangArm.setPower(righty2 * 0.5);
+            hangArm.setPower(righty2 * liftPow);
         }
         else {
             hangArm.setPower(0);
