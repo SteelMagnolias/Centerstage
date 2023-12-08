@@ -20,11 +20,10 @@ public class Drive extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    private DcMotor hook;
     private DcMotor verticalArm;
     private DcMotor hangArm;
 
-    private Servo hangBolts;
+    private CRServo hangBolts;
 
 
 
@@ -35,7 +34,7 @@ public class Drive extends OpMode {
 
     // sensors
     //private DistanceSensor distanceSensor;
-    private AnalogInput potentiometer;
+    //private AnalogInput potentiometer;
 
 
     // cameras
@@ -52,7 +51,7 @@ public class Drive extends OpMode {
     //double liftDownVoltage = 0;
     //int liftStep = 0; // step in lifting process
 
-    double liftPow = 0.5;
+    double liftPow = 0.7;
 
 
 
@@ -65,7 +64,6 @@ public class Drive extends OpMode {
 
         // reverse motors
         leftBack.setDirection(DcMotor.Direction.REVERSE );
-        hook = hardwareMap.get(DcMotor.class, "hook");
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
@@ -74,7 +72,7 @@ public class Drive extends OpMode {
 
         hangArm = hardwareMap.get(DcMotor.class, "hangArm");
         hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hangBolts = hardwareMap.get(Servo.class, "hangBolts");
+        hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -118,7 +116,7 @@ public class Drive extends OpMode {
         double l_trig2 = gamepad2.left_trigger;
 
         // sensor readings
-        double potentiometerVoltage = potentiometer.getVoltage();
+        //double potentiometerVoltage = potentiometer.getVoltage();
 
         // telemetry
         telemetry.addData("Gamepad:", 1);
@@ -151,7 +149,7 @@ public class Drive extends OpMode {
         telemetry.addData("rb2", rb2);
 
         telemetry.addData("Other:", "Sensors");
-        telemetry.addData("potentiometerVoltage", potentiometerVoltage);
+        //telemetry.addData("potentiometerVoltage", potentiometerVoltage);
 
 
 
@@ -318,33 +316,35 @@ public class Drive extends OpMode {
           verticalArm.setPower(0); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
       }
 
+
+      /*
         if (Math.abs(righty2) > 0.1) {
-            // lift hanging arm
-            hangArm.setPower(righty2 * liftPow);
+            // lift hanging arm (if y2 pressed, do linear slides portion)
+            if (y2) {
+                hangBolts.setPower(righty2);
+            }
+            else {
+                hangArm.setPower(righty2 * liftPow);
+            }
         }
         else {
             hangArm.setPower(0);
+            hangBolts.setPower(0);
         }
-
-        if (b2) {
-            hangBolts.setPosition(1);
-        }
-        else if (x2) {
-            hangBolts.setPosition(0);
-        }
+        */
 
 
         if (r_trig2 > 0.1) {
-            intakeClawRight.setPower(1 *r_trig2);
+            intakeClawRight.setPower(-1 *r_trig2);
         }
         else if (l_trig2 > 0.1) {
-            intakeClawLeft.setPower(-1 *l_trig2);
-        }
-        else if (lb2) {
-            intakeClawLeft.setPower(l_trig2);
+            intakeClawLeft.setPower(1 *l_trig2);
         }
         else if (rb2) {
-            intakeClawRight.setPower(r_trig2);
+            intakeClawRight.setPower(1);
+        }
+        else if (lb2) {
+            intakeClawLeft.setPower(-1);
         }
         else {
             intakeClawLeft.setPower(0);
