@@ -17,7 +17,8 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
     private DcMotor leftBack;
     private DcMotor rightBack;
 
-    private CRServo intakeClaw;
+    private CRServo intakeClawLeft;
+    private CRServo intakeClawRight;
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
@@ -37,10 +38,10 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
-        leftBack.setDirection(DcMotor.Direction.REVERSE );
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
-        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
+        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
 
         if (allianceSwitch.isPressed()) {
@@ -53,20 +54,20 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         telemetry.addData("rightFront", rightFront.getPower());
         telemetry.addData("leftBack", leftBack.getPower());
         telemetry.addData("rightBack", rightBack.getPower());
-        telemetry.addData("intakeClaw" , intakeClaw.getPower());
+        //telemetry.addData("intakeClaw" , intakeClaw.getPower());
 
         telemetry.addData("REVERSE (if -1, blue alliance)", REVERSE);
 
         waitForStart();
 
         //drive forwards
-        drive(drivePow , drivePow , drivePow, drivePow , 1500);
+        drive(drivePow , drivePow , drivePow, drivePow , 3000);
 
         //Drop 2 pixels in backstage
-        dropPixel();
+        dropPixel(2000);
 
         //Drive into backstage
-        drive(drivePow, drivePow, drivePow, drivePow, 500);
+        drive(-drivePow, -drivePow, -drivePow, -drivePow, 500);
 
         telemetry.update();
 
@@ -86,9 +87,13 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         sleep(10);
 
     }
-    public void dropPixel (){
-        intakeClaw.setPower(1);
-        sleep(1000);
-        intakeClaw.setPower(0);
+
+    public void dropPixel (int time){
+        intakeClawLeft.setPower(-1);
+        intakeClawRight.setPower(1);
+        sleep(time);
+        intakeClawLeft.setPower(0);
+        intakeClawRight.setPower(0);
+
     }
 }

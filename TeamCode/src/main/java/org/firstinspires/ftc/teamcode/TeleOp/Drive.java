@@ -21,9 +21,9 @@ public class Drive extends OpMode {
     private DcMotor leftBack;
     private DcMotor rightBack;
     private DcMotor verticalArm;
-    private DcMotor hangArm;
+    //private DcMotor hangArm;
 
-    private CRServo hangBolts;
+    //private CRServo hangBolts;
 
 
 
@@ -62,17 +62,17 @@ public class Drive extends OpMode {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
 
+
         // reverse motors
-        leftBack.setDirection(DcMotor.Direction.REVERSE );
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
-        hangArm = hardwareMap.get(DcMotor.class, "hangArm");
-        hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
+        //hangArm = hardwareMap.get(DcMotor.class, "hangArm");
+        //hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
 
         //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
     }
@@ -301,7 +301,7 @@ public class Drive extends OpMode {
         }
 
 
-      if (Math.abs(lefty2) > 0.1) {
+      if (Math.abs(lefty2) >= 0.1) {
           verticalArm.setPower(armPow * lefty2);
       }
       else if (buttonup2 ){
@@ -315,6 +315,7 @@ public class Drive extends OpMode {
           // no movement
           verticalArm.setPower(0); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
       }
+
 
 
       /*
@@ -332,6 +333,8 @@ public class Drive extends OpMode {
             hangBolts.setPower(0);
         }
         */
+
+
 
 
         if (r_trig2 > 0.1) {

@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 
-@Autonomous(name = "OdometryTest", group="Iterative OpMode")
-public class OdometryTest extends OpMode {
+@Autonomous(name = "OdometryBackstage", group="Iterative OpMode")
+public class OdoBackstage extends OpMode {
 
     // declare motors!
     private DcMotor leftFront;
@@ -19,22 +19,11 @@ public class OdometryTest extends OpMode {
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
 
-    private DcMotor verticalArm;
-    private DcMotor hangArm;
-
-    private CRServo hangBolts;
-
-
-
-    // servos
-    private CRServo intakeClawRight;
-    private CRServo intakeClawLeft;
-
 
     // bot constraints:
-    double trackWidth = 20.32; //(cm)!
-    double yOffSet = 12.7; //(cm)!
-    double wheelRadius = 1.75; // centimeters!
+    double trackWidth = 21.5; //(cm)!
+    double yOffSet = 10.5; //(cm)!
+    double wheelRadius = 4.8; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
@@ -58,31 +47,15 @@ public class OdometryTest extends OpMode {
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
 
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftBack.setDirection(DcMotor.Direction.REVERSE );
-
-        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
-        verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
-
-        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
-        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
-
-        hangArm = hardwareMap.get(DcMotor.class, "hangArm");
-        hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
 
         leftEncoder = leftFront;
         rightEncoder = rightFront;
-        backEncoder = verticalArm;
+        backEncoder = leftBack;
     }
 
 
@@ -94,42 +67,42 @@ public class OdometryTest extends OpMode {
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[1] >= 60) {
+                if (pose[1] >= 120 && pose[1] <= 123) {
                     drive(0);
                     step++;
                 }
                 break;
             case 1: // strafe right!
-                strafe(-0.3);
-                if (pose[0] >= 60) {
+                strafe(0.5);
+                if (pose[0] >= 120 && pose[0] <= 123) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 2: // drive back!
                 drive(-0.3);
-                if (pose[1] <= 0) {
+                if (pose[1] >= -2 && pose[1] <= 1) {
                     drive(0);
                     step++;
                 }
                 break;
             case 3: // strafe left!
-                strafe(0.3);
-                if(pose[0] <= 0) {
+                strafe(-0.5);
+                if(pose[0] >= -2 && pose[0] <= 1) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 4: // rotate right!
                 rotate(0.3);
-                if (pose[2] >= (Math.PI / 6)) {
+                if (pose[2] >= (Math.PI / 6) && pose[2] <= ((8 * Math.PI) / 45)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 5: // rotate left!
                 rotate(-0.3);
-                if (pose[2] <=(Math.PI / -6)) {
+                if (pose[2] <=(Math.PI / -6) && pose[2] >= ((-8 * Math.PI) / 45)) {
                     rotate(0);
                     step++;
                 }
@@ -138,13 +111,6 @@ public class OdometryTest extends OpMode {
                 drive(0);
                 stop();
         }
-
-        telemetry.addData("Pose0", pose[0]);
-        telemetry.addData("Pose1", pose[1]);
-        telemetry.addData("Pose2", pose[2]);
-        telemetry.addData("Case", step);
-
-        telemetry.update();
     }
 
 
@@ -160,11 +126,11 @@ public class OdometryTest extends OpMode {
         // distance wheel turns in cm!
         double rawLeftEncoder = leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = -backEncoder.getCurrentPosition();
+        double rawBackEncoder = backEncoder.getCurrentPosition();
 
-        double rawChangeLeft = (rawLeftEncoder - prevLeftEncoder) / cpr * wheelCircumference;
-        double rawChangeRight = (rawRightEncoder - prevRightEncoder) / cpr * wheelCircumference;
-        double rawChangeBack = (rawBackEncoder - prevBackEncoder) / cpr * wheelCircumference;
+        double rawChangeLeft = (((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference) - prevLeftEncoder;
+        double rawChangeRight = (((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference) - prevRightEncoder;
+        double rawChangeBack = (((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference) -prevBackEncoder;
 
         // find change in theta!
         double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
@@ -173,7 +139,7 @@ public class OdometryTest extends OpMode {
         double xCenter = (rawChangeLeft + rawChangeRight) / 2;
 
         // find change in x perpendicular!
-        double xPerp = rawChangeBack - yOffSet * deltaTheta;
+        double xPerp = rawChangeBack - (yOffSet * deltaTheta);
 
         //find change in x!
         double xChange = xCenter * Math.cos(deltaTheta) - xPerp * Math.sin(deltaTheta);

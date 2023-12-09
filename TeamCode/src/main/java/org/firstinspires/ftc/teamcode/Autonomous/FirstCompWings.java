@@ -18,12 +18,13 @@ public class FirstCompWings extends LinearOpMode{
     private DcMotor leftBack;
     private DcMotor rightBack;
 
-    private CRServo intakeClaw;
+    private CRServo intakeClawLeft;
+    private CRServo intakeClawRight;
 
     // declare sensors
     private TouchSensor allianceSwitch; // determines what alliance we are on.
 
-    private double drivePow=1;
+    private double drivePow=0.3;
 
 
     // constant reverse, if we are on the blue side, then will be -1
@@ -39,9 +40,8 @@ public class FirstCompWings extends LinearOpMode{
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        intakeClaw = hardwareMap.get(CRServo.class, "intakeClaw");
-
-        leftBack.setDirection(DcMotor.Direction.REVERSE );
+        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
 
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
@@ -68,20 +68,23 @@ public class FirstCompWings extends LinearOpMode{
 
 
         // strafe inwards until in line with flip door
-        drive(-drivePow*REVERSE, +drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 3900);
+        drive(-drivePow*REVERSE, +drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 4400);
 
-        //Turn to correct strafe
-        drive(+drivePow*REVERSE, -drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 110);
+        //Turn to correct strafe if on red alliance (not blue)
+        if (REVERSE == 1) {
+            drive(+drivePow*REVERSE, -drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 100);
+
+        }
 
         // drive forward until through door and into backstage area tapes
-        drive(+drivePow , +drivePow , +drivePow , +drivePow , 5000);
+        drive(+drivePow , +drivePow , +drivePow , +drivePow , 5500);
 
         // drop pixel
         dropPixel(2000);
 
 
         // back up a little
-        drive(drivePow, drivePow, drivePow, drivePow, 500);
+        drive(-drivePow, -drivePow, -drivePow, -drivePow, 500);
 
         telemetry.update();
     }
@@ -100,13 +103,17 @@ public class FirstCompWings extends LinearOpMode{
         sleep(10);
     }
     public void closePixel () {
-        intakeClaw.setPower(-1);
+
+        intakeClawLeft.setPower(1);
+        intakeClawRight.setPower(-1);
     }
 
     public void dropPixel (int time){
-        intakeClaw.setPower(-1);
+        intakeClawLeft.setPower(-1);
+        intakeClawRight.setPower(1);
         sleep(time);
-        intakeClaw.setPower(0);
+        intakeClawLeft.setPower(0);
+        intakeClawRight.setPower(0);
 
     }
 }
