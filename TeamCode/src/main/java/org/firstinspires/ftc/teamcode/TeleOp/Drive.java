@@ -42,7 +42,7 @@ public class Drive extends OpMode {
 
     // other variables
     double pow; // motor power for wheels
-    double armPow = 0.5; // arm power
+    double armPow = 0.6; // arm power
     double theta; // angle of wheels joystick
 
 
@@ -156,7 +156,7 @@ public class Drive extends OpMode {
         // wheels
         // if in turbo mode, full power, otherwise half
         if (a1) pow = 1; // turbo mode
-        else pow =0.5;
+        else pow =0.9;
         double c = Math.hypot(leftx1, lefty1); // find length of hypot using tan of triangle made by x and y
         double perct = pow * c; // scale by max power
         if (c <= .1) perct = 0; // if we are less than .1 power, than just don't move since we are in dead zone
@@ -248,7 +248,7 @@ public class Drive extends OpMode {
 
 
         // Below: precision (slower) movement
-        pow *= 0.5;
+        pow *= 0.57;
         if (buttonUp1) {
             // slowly moves forwards
             leftFront.setPower(pow);
@@ -311,9 +311,17 @@ public class Drive extends OpMode {
           verticalArm.setPower(armPow*-0.5);
 
       }
+      else if (Math.abs (righty2) >= 0.1 || Math.abs (rightx2) >=0.1){ // problem with arm hold comp
+            if (Math.abs(lefty2) >= 0.1){
+                verticalArm.setPower(armPow*lefty2);
+            }
+            else {
+                verticalArm.setPower(-0.05);
+            }
+      }
       else {
           // no movement
-          verticalArm.setPower(0); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
+          verticalArm.setPower(0.05); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
       }
 
 
@@ -337,21 +345,23 @@ public class Drive extends OpMode {
 
 
 
-        if (r_trig2 > 0.1) {
-            intakeClawRight.setPower(-1 *r_trig2);
-        }
-        else if (l_trig2 > 0.1) {
-            intakeClawLeft.setPower(1 *l_trig2);
-        }
-        else if (rb2) {
+        if (l_trig2 > 0.1) {
             intakeClawRight.setPower(1);
         }
         else if (lb2) {
+            intakeClawRight.setPower(-1);
+        }
+        else {
+            intakeClawRight.setPower(0);
+        }
+        if (r_trig2 > 0.1) {
             intakeClawLeft.setPower(-1);
+        }
+        else if (rb2) {
+            intakeClawLeft.setPower(1);
         }
         else {
             intakeClawLeft.setPower(0);
-            intakeClawRight.setPower(0);
         }
 
 

@@ -18,6 +18,8 @@ public class FirstCompWings extends LinearOpMode{
     private DcMotor leftBack;
     private DcMotor rightBack;
 
+    private DcMotor verticalArm;
+
     private CRServo intakeClawLeft;
     private CRServo intakeClawRight;
 
@@ -40,6 +42,7 @@ public class FirstCompWings extends LinearOpMode{
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
@@ -75,16 +78,29 @@ public class FirstCompWings extends LinearOpMode{
             drive(+drivePow*REVERSE, -drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, 100);
 
         }
+        else {
+            drive(-drivePow*REVERSE, +drivePow*REVERSE, -drivePow*REVERSE, +drivePow*REVERSE, 0); // got rid of turn comp
+        }
 
         // drive forward until through door and into backstage area tapes
-        drive(+drivePow , +drivePow , +drivePow , +drivePow , 5500);
+        drive(+drivePow , +drivePow , +drivePow , +drivePow , 5750);
+
+        // back up a little
+        verticalArm.setPower(0.3);
+        sleep(2000);
+        verticalArm.setPower(0);
+
 
         // drop pixel
         dropPixel(2000);
 
 
         // back up a little
-        drive(-drivePow, -drivePow, -drivePow, -drivePow, 500);
+        verticalArm.setPower(0.7);
+        sleep(2500);
+        verticalArm.setPower(0);
+
+
 
         telemetry.update();
     }

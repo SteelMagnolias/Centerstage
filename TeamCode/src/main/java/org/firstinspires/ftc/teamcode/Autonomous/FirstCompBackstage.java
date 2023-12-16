@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
+    private DcMotor verticalArm;
 
     private CRServo intakeClawLeft;
     private CRServo intakeClawRight;
@@ -39,6 +40,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
@@ -66,8 +68,19 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
         //Drop 2 pixels in backstage
         dropPixel(2000);
 
+        // added arm shake pixel stuck on bot comp
+        // back up a little
+        verticalArm.setPower(0.3);
+        sleep(2000);
+        verticalArm.setPower(0);
         //Drive into backstage
         drive(-drivePow, -drivePow, -drivePow, -drivePow, 500);
+
+
+        // back up a little
+        verticalArm.setPower(0.7);
+        sleep(2500);
+        verticalArm.setPower(0);
 
         telemetry.update();
 
