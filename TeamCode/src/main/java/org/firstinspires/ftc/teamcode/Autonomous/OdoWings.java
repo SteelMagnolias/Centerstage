@@ -73,6 +73,10 @@ public class OdoWings extends OpMode {
         leftEncoder = leftFront;
         rightEncoder = rightFront;
         backEncoder = leftBack;
+
+        prevLeftEncoder = leftEncoder.getCurrentPosition();
+        prevRightEncoder = rightEncoder.getCurrentPosition();
+        prevBackEncoder = -backEncoder.getCurrentPosition();
     }
 
 
@@ -179,7 +183,7 @@ public class OdoWings extends OpMode {
         // distance wheel turns in cm!
         double rawLeftEncoder = leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = backEncoder.getCurrentPosition();
+        double rawBackEncoder = -backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
@@ -195,18 +199,23 @@ public class OdoWings extends OpMode {
 
         // find change in theta!
         double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
+        telemetry.addData("deltaTheta", deltaTheta);
 
         // find change of x (center)!
         double xCenter = (rawChangeLeft + rawChangeRight) / 2;
+        telemetry.addData("xCenter", xCenter);
 
         // find change in x perpendicular!
         double xPerp = rawChangeBack - (yOffSet * deltaTheta);
+        telemetry.addData("xPerp", xPerp);
 
         //find change in x!
         double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
+        telemetry.addData("xChange", xChange);
 
         // find changein y!
         double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
+        telemetry.addData("yChange", yChange);
 
         pose[0] += xChange;
         pose[1] += yChange;
@@ -215,6 +224,9 @@ public class OdoWings extends OpMode {
         prevLeftEncoder = rawLeftEncoder;
         prevRightEncoder = rawRightEncoder;
         prevBackEncoder = rawBackEncoder;
+        telemetry.addData("prevLeftEncoder", rawChangeLeft);
+        telemetry.addData("Raw Left Change", rawChangeLeft);
+        telemetry.addData("Raw Left Change", rawChangeLeft);
     }
 
     public void drive(double pow) {
