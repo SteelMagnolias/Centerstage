@@ -74,7 +74,6 @@ public class CameraTest extends LinearOpMode {
         //wait for start
         waitForStart();
 
-
     }
 
 
@@ -120,7 +119,7 @@ public class CameraTest extends LinearOpMode {
 
 
         //must be at least 75% confident to display data
-        tfod.setMinResultConfidence(0.5f);
+        tfod.setMinResultConfidence(0.2f);
 
 
         //processor is on
