@@ -7,6 +7,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import java.io.FileWriter;  // Import the File class
+import java.io.IOException;  // Import the IOException class to handle errors
+
 
 @Autonomous(name = "OdoWings", group="Iterative OpMode")
 public class OdoWings extends OpMode {
@@ -21,9 +24,9 @@ public class OdoWings extends OpMode {
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
 
-    private DcMotor verticalArm;
-    private CRServo intakeClawLeft;
-    private CRServo intakeClawRight;
+    //private DcMotor verticalArm;
+    //private CRServo intakeClawLeft;
+    //private CRServo intakeClawRight;
 
 
     // bot constraints:
@@ -47,6 +50,8 @@ public class OdoWings extends OpMode {
     // make a timer
     ElapsedTime timer = new ElapsedTime();
 
+    FileWriter myObj;
+
 
     @Override
     public void init() {
@@ -56,9 +61,9 @@ public class OdoWings extends OpMode {
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
 
-        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
-        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
-        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
+        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        //intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+        //intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -77,6 +82,13 @@ public class OdoWings extends OpMode {
         prevLeftEncoder = leftEncoder.getCurrentPosition();
         prevRightEncoder = rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
+
+        try {
+            myObj = new FileWriter("coordinates.txt");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
 
 
@@ -116,6 +128,8 @@ public class OdoWings extends OpMode {
                 break;
             case 4: // do the drop
                 // raise arm
+
+                /*
                 verticalArm.setPower(0.3);
                 setTimer(3);
                 verticalArm.setPower(0);
@@ -132,6 +146,7 @@ public class OdoWings extends OpMode {
                 setTimer(3);
                 // stop moving arm
                 verticalArm.setPower(0);
+                */
 
                 step++;
                 break;
@@ -174,6 +189,12 @@ public class OdoWings extends OpMode {
     @Override
     public void stop() {
         // stops code
+        try {
+            myObj.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
 
 
@@ -227,6 +248,14 @@ public class OdoWings extends OpMode {
         telemetry.addData("prevLeftEncoder", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
+
+        try {
+            myObj.write("(" + pose[0] + "," + pose[1] + ")");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+
     }
 
     public void drive(double pow) {
