@@ -134,8 +134,8 @@ public class OdometryTest extends OpMode {
                     step++;
                 }
 
-                //setPIDSettings(0,0,0); // set the kp, ki, and kd for forward movemement
-                //drivePID(0); // keep angle at 0 (moving forward in straight line)
+                setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
+                drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
             case 1: // strafe right!
                 strafe(-0.3);
@@ -307,10 +307,12 @@ public class OdometryTest extends OpMode {
     public void drivePID(double angle) {
         double error = PIDcontrol(angle, pose[2]);
 
-        leftFront.setPower(leftFront.getPower() + error);
-        rightFront.setPower(rightFront.getPower() - error);
-        leftBack.setPower(leftBack.getPower() + error);
-        rightBack.setPower(rightBack.getPower() - error);
+        // now you can put the 0.8 on a pid as well to track the y position at the same time
+
+        leftFront.setPower(0.8 + error);
+        rightFront.setPower(0.8 - error);
+        leftBack.setPower(0.8 + error);
+        rightBack.setPower(0.8 - error);
     }
 
     public void setPIDSettings (double p,  double i, double d) {
