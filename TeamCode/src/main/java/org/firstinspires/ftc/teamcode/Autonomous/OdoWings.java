@@ -7,10 +7,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.io.FileWriter;  // Import the File class
-import java.io.IOException;  // Import the IOException class to handle errors
-
-
 @Autonomous(name = "OdoWings", group="Iterative OpMode")
 public class OdoWings extends OpMode {
 
@@ -50,8 +46,6 @@ public class OdoWings extends OpMode {
     // make a timer
     ElapsedTime timer = new ElapsedTime();
 
-    FileWriter myObj;
-
 
     @Override
     public void init() {
@@ -83,12 +77,6 @@ public class OdoWings extends OpMode {
         prevRightEncoder = rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
 
-        try {
-            myObj = new FileWriter("coordinates.txt");
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
     }
 
 
@@ -188,13 +176,6 @@ public class OdoWings extends OpMode {
 
     @Override
     public void stop() {
-        // stops code
-        try {
-            myObj.close();
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
     }
 
 
@@ -248,13 +229,6 @@ public class OdoWings extends OpMode {
         telemetry.addData("prevLeftEncoder", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
-
-        try {
-            myObj.write("(" + pose[0] + "," + pose[1] + ")");
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
 
     }
 

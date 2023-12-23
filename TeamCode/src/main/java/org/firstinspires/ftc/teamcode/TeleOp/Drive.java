@@ -21,6 +21,10 @@ public class Drive extends OpMode {
     private DcMotor leftBack;
     private DcMotor rightBack;
     private DcMotor verticalArm;
+    private DcMotor verticalArm2;
+
+    private CRServo wrist;
+    private CRServo wrist2;
     //private DcMotor hangArm;
 
     //private CRServo hangBolts;
@@ -66,10 +70,14 @@ public class Drive extends OpMode {
         // reverse motors
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
+        verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
+        wrist = hardwareMap.get(CRServo.class, "wrist");
+        wrist2 = hardwareMap.get(CRServo.class, "wrist2");
         //hangArm = hardwareMap.get(DcMotor.class, "hangArm");
         //hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
@@ -303,44 +311,50 @@ public class Drive extends OpMode {
 
       if (Math.abs(lefty2) >= 0.1) {
           verticalArm.setPower(armPow * lefty2);
+          verticalArm2.setPower(armPow * lefty2);
       }
       else if (buttonup2 ){
           verticalArm.setPower(armPow*0.5);
+          verticalArm2.setPower(armPow*0.5);
       }
       else if (buttondown2) {
           verticalArm.setPower(armPow*-0.5);
+          verticalArm2.setPower(armPow*-0.5);
 
       }
-      else if (Math.abs (righty2) >= 0.1 || Math.abs (rightx2) >=0.1){ // problem with arm hold comp
+      /*else if (Math.abs (righty2) >= 0.1 || Math.abs (rightx2) >=0.1){ // problem with arm hold comp
             if (Math.abs(lefty2) >= 0.1){
                 verticalArm.setPower(armPow*lefty2);
+                verticalArm2.setPower(armPow*lefty2);
             }
             else {
                 verticalArm.setPower(-0.05);
+                verticalArm2.setPower(-0.05);
+
             }
-      }
+      }*/
       else {
           // no movement
           verticalArm.setPower(0.05); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
+          verticalArm2.setPower(0.05);
       }
 
 
-
-      /*
         if (Math.abs(righty2) > 0.1) {
-            // lift hanging arm (if y2 pressed, do linear slides portion)
-            if (y2) {
-                hangBolts.setPower(righty2);
+            // wrist
+            if (righty2 > 0) {
+                wrist.setPower(1);
+                wrist2.setPower(1);
             }
             else {
-                hangArm.setPower(righty2 * liftPow);
+                wrist.setPower(-1);
+                wrist2.setPower(-1);
             }
         }
         else {
-            hangArm.setPower(0);
-            hangBolts.setPower(0);
+            wrist.setPower(0);
+            wrist2.setPower(0);
         }
-        */
 
 
 

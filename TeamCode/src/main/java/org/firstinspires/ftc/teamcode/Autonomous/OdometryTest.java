@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import java.io.FileWriter;
+import java.io.IOException;
 
 
 @Autonomous(name = "OdometryTest", group="Iterative OpMode")
@@ -52,6 +54,21 @@ public class OdometryTest extends OpMode {
 
     ElapsedTime timer = new ElapsedTime();
 
+    private FileWriter writer;
+    private FileWriter writer2;
+
+    // PID STUFF
+    double integralSum = 0;
+    double Kp = 0;
+    double Ki= 0;
+    double Kd = 0;
+    //could add another controller if needed
+    double reference = 0.8;
+
+
+    ElapsedTime PIDTimer = new ElapsedTime();
+    double lasterror = 0;
+
     @Override
     public void init() {
         // init!
@@ -70,7 +87,7 @@ public class OdometryTest extends OpMode {
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftBack.setDirection(DcMotor.Direction.REVERSE );
+        rightBack.setDirection(DcMotor.Direction.REVERSE );
 
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         //verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
@@ -89,6 +106,18 @@ public class OdometryTest extends OpMode {
         prevLeftEncoder = leftEncoder.getCurrentPosition();
         prevRightEncoder = rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
+
+        try {
+            writer = new FileWriter("/ARP/path/to/your/inputOutput.txt");
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot write to file", e);
+        }
+
+        try {
+            writer2 = new FileWriter("/ARP/path/to/your/coordinates.txt");
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot write to file", e);
+        }
     }
 
 
@@ -104,6 +133,9 @@ public class OdometryTest extends OpMode {
                     drive(0);
                     step++;
                 }
+
+                //setPIDSettings(0,0,0); // set the kp, ki, and kd for forward movemement
+                //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
             case 1: // strafe right!
                 strafe(-0.3);
@@ -159,13 +191,28 @@ public class OdometryTest extends OpMode {
         // stops code
     }
 
+    private void writeToFile(String data) {
+        try {
+            writer.write(data + "\n");
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot write to file", e);
+        }
+    }
+
+    private void recordCoordinates(String data) {
+        try {
+            writer2.write(data + "\n");
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot write to file", e);
+        }
+    }
 
     public void runOdometry() {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
-        double rawRightEncoder = rightEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
+        double rawRightEncoder = -rightEncoder.getCurrentPosition();
         double rawBackEncoder = -backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
@@ -207,9 +254,20 @@ public class OdometryTest extends OpMode {
         prevLeftEncoder = rawLeftEncoder;
         prevRightEncoder = rawRightEncoder;
         prevBackEncoder = rawBackEncoder;
+
         telemetry.addData("prevLeftEncoder", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
+
+        writeToFile("rawLeftEncoder: " + rawLeftEncoder);
+        writeToFile("rawRightEncoder: " + rawRightEncoder);
+        writeToFile("rawBackEncoder: " + rawBackEncoder);
+        writeToFile("pose[0]: " + pose[0]);
+        writeToFile("pose[1]: " + pose[1]);
+        writeToFile("pose[2]: " + pose[2]);
+        writeToFile("");
+
+        recordCoordinates("(" + pose[0] + ", " + pose[1] + ")");
     }
 
     public void drive(double pow) {
@@ -244,5 +302,38 @@ public class OdometryTest extends OpMode {
                 break;
             }
         }
+    }
+
+    public void drivePID(double angle) {
+        double error = PIDcontrol(angle, pose[2]);
+
+        leftFront.setPower(leftFront.getPower() + error);
+        rightFront.setPower(rightFront.getPower() - error);
+        leftBack.setPower(leftBack.getPower() + error);
+        rightBack.setPower(rightBack.getPower() - error);
+    }
+
+    public void setPIDSettings (double p,  double i, double d) {
+        integralSum = 0;
+        Kp = p;
+        Ki= i;
+        Kd = d;
+
+
+        PIDTimer = new ElapsedTime();
+        lasterror = 0;
+    }
+
+    public double PIDcontrol(double reference, double state){
+        double error = reference - state;
+        integralSum += error * PIDTimer.seconds();
+        double derivative = (error - lasterror ) / PIDTimer.seconds();
+        lasterror = error;
+
+        PIDTimer.reset();
+
+        double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
+        return output;
+
     }
 }
