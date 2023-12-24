@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import java.io.FileWriter;
-import java.io.IOException;
+import com.qualcomm.robotcore.util.RobotLog;
+
 
 
 @Autonomous(name = "OdometryTest", group="Iterative OpMode")
@@ -36,7 +36,7 @@ public class OdometryTest extends OpMode {
 
     // bot constraints:
     double trackWidth = 20.32; //(cm)!
-    double yOffSet = 12.7; //(cm)!
+    double yOffSet = -19.0; //(cm)!
     double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
@@ -52,10 +52,9 @@ public class OdometryTest extends OpMode {
     // auton step / action!
     int step = 0;
 
-    ElapsedTime timer = new ElapsedTime();
+    int logCount = 0;
 
-    private FileWriter writer;
-    private FileWriter writer2;
+    ElapsedTime timer = new ElapsedTime();
 
     // PID STUFF
     double integralSum = 0;
@@ -77,6 +76,8 @@ public class OdometryTest extends OpMode {
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
 
+        leftBack.setDirection(DcMotor.Direction.REVERSE );
+
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -86,9 +87,6 @@ public class OdometryTest extends OpMode {
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        rightBack.setDirection(DcMotor.Direction.REVERSE );
-
         //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         //verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
@@ -99,61 +97,54 @@ public class OdometryTest extends OpMode {
         //hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
 
-        leftEncoder = leftFront;
-        rightEncoder = rightFront;
+        leftEncoder = leftBack;
+        rightEncoder = leftFront;
         backEncoder = leftBack;
 
         prevLeftEncoder = leftEncoder.getCurrentPosition();
         prevRightEncoder = rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
-
-        try {
-            writer = new FileWriter("/ARP/path/to/your/inputOutput.txt");
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot write to file", e);
-        }
-
-        try {
-            writer2 = new FileWriter("/ARP/path/to/your/coordinates.txt");
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot write to file", e);
-        }
     }
 
 
     @Override
     public void loop() {
         // repeating code - contains state machine!
+
         runOdometry();
+
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
+
 
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[1] >= 60) {
+                if (pose[0] >= 6000000) {
                     drive(0);
                     step++;
                 }
 
-                setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
-                drivePID(0); // keep angle at 0 (moving forward in straight line)
+                //setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
+                //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
             case 1: // strafe right!
                 strafe(-0.3);
-                if (pose[0] >= 60) {
+                if (pose[1] >= 60) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 2: // drive back!
                 drive(-0.3);
-                if (pose[1] <= 0) {
+                if (pose[0] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 3: // strafe left!
                 strafe(0.3);
-                if(pose[0] <= 0) {
+                if(pose[1] <= 0) {
                     strafe(0);
                     step++;
                 }
@@ -191,27 +182,11 @@ public class OdometryTest extends OpMode {
         // stops code
     }
 
-    private void writeToFile(String data) {
-        try {
-            writer.write(data + "\n");
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot write to file", e);
-        }
-    }
-
-    private void recordCoordinates(String data) {
-        try {
-            writer2.write(data + "\n");
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot write to file", e);
-        }
-    }
-
     public void runOdometry() {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = leftEncoder.getCurrentPosition();
         double rawRightEncoder = -rightEncoder.getCurrentPosition();
         double rawBackEncoder = -backEncoder.getCurrentPosition();
 
@@ -219,9 +194,9 @@ public class OdometryTest extends OpMode {
         telemetry.addData("Raw Right", rawRightEncoder);
         telemetry.addData("Raw Back", rawBackEncoder);
 
-        double rawChangeLeft = (((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference);
-        double rawChangeRight = (((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference);
-        double rawChangeBack = (((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference);
+        double rawChangeLeft = rawLeftEncoder - prevLeftEncoder;
+        double rawChangeRight = rawRightEncoder - prevRightEncoder;
+        double rawChangeBack = rawBackEncoder - prevBackEncoder;
 
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Right Change", rawChangeRight);
@@ -259,15 +234,23 @@ public class OdometryTest extends OpMode {
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
 
-        writeToFile("rawLeftEncoder: " + rawLeftEncoder);
-        writeToFile("rawRightEncoder: " + rawRightEncoder);
-        writeToFile("rawBackEncoder: " + rawBackEncoder);
-        writeToFile("pose[0]: " + pose[0]);
-        writeToFile("pose[1]: " + pose[1]);
-        writeToFile("pose[2]: " + pose[2]);
-        writeToFile("");
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawLeftEncoder: " + rawLeftEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawRightEncoder: " + rawRightEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawBackEncoder: " + rawBackEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[0]: " + pose[0]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[1]: " + pose[1]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[2]: " + pose[2]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    ");
 
-        recordCoordinates("(" + pose[0] + ", " + pose[1] + ")");
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
     }
 
     public void drive(double pow) {
