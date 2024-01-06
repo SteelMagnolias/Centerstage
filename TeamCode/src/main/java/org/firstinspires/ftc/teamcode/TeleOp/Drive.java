@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @TeleOp (name = "Drive" , group = "Iterative Opmode")
@@ -39,6 +40,18 @@ public class Drive extends OpMode {
     // sensors
     //private DistanceSensor distanceSensor;
     //private AnalogInput potentiometer;
+
+    // PID
+    double integralSum = 0;
+    double lasterror = 0;
+    ElapsedTime timer = new ElapsedTime();
+
+    // PID Lift
+    double KpLift = 0;
+    double KiLift= 0;
+    double KdLift = 0;
+    double referenceLift = 0;
+
 
 
     // cameras
@@ -306,6 +319,14 @@ public class Drive extends OpMode {
             rightBack.setPower(0);
         }
 
+        if (options2) {
+            // set pid to keep in position
+            armPow = PIDcontrol(KpLift, KiLift, KdLift, referenceLift, ((verticalArm.getPower() + verticalArm2.getPower())/2));
+            verticalArm.setPower(armPow);
+            verticalArm2.setPower(armPow);
+        }
+
+
 
         // emergency stop
         if (b1 && y1) {
@@ -440,5 +461,18 @@ public class Drive extends OpMode {
 
     public void throwPlane() {
         // throw plane from behind truss
+    }
+
+    public double PIDcontrol(double Kp, double Ki, double Kd, double reference, double state){
+        double error = reference - state;
+        integralSum += error * timer.seconds();
+        double derivative = (error - lasterror ) / timer.seconds();
+        lasterror = error;
+
+        timer.reset();
+
+        double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
+        return output;
+
     }
 }
