@@ -125,6 +125,7 @@ public class Drive extends OpMode {
         boolean buttondown2 = gamepad2.dpad_down;
         double r_trig2 = gamepad2.right_trigger;
         double l_trig2 = gamepad2.left_trigger;
+        boolean options2 = gamepad2.options;
 
         // sensor readings
         //double potentiometerVoltage = potentiometer.getVoltage();
