@@ -6,9 +6,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-
-@Autonomous(name = "OdometryBackstage", group="Iterative OpMode")
-public class OdoBackstage extends OpMode {
+@Autonomous(name = "alternativeOdometry", group="Iterative OpMode")
+public class alternativeOdometry extends OpMode {
 
     // declare motors!
     private DcMotor leftFront;
@@ -24,6 +23,7 @@ public class OdoBackstage extends OpMode {
     private CRServo wrist1;
     private CRServo wrist2;
 
+    // declare encoders
     private DcMotor leftEncoder;
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
@@ -31,25 +31,18 @@ public class OdoBackstage extends OpMode {
     private DcMotor wristEncoder;
 
 
-
-    // bot constraints:
-    double trackWidth = 21.5; //(cm)!
-    double yOffSet = 10.5; //(cm)!
-    double wheelRadius = 4.8; // centimeters!
-    double cpr = 8192; // counts per rotation!
-    double wheelCircumference = 2 * Math.PI * wheelRadius;
-
-    // current pose!
-    double[] pose = {0,0,0};
-
-    // previous encoder positions!
-    double prevLeftEncoder = 0;
-    double prevRightEncoder = 0;
-    double prevBackEncoder = 0;
-
     // auton step / action!
     int step = 0;
 
+    // calculation variables in millimeters or degrees
+    double distancePerTick = 0.0134;
+    double anglePerTick = 0.00714;
+    double yDistanceTraveled;
+    double xDistanceTraveled;
+    double angleTurned;
+    double xPreviousDistanceTraveled = 0;
+    double yPreviousDistanceTraveled = 0;
+    double previousAngleTurned;
 
     @Override
     public void init() {
@@ -78,54 +71,41 @@ public class OdoBackstage extends OpMode {
         wristEncoder = verticalArm2;
     }
 
-
     @Override
     public void loop() {
-        // repeating code - contains state machine!
-        runOdometry();
 
-        switch(step) {
-            case 0: // drive forward!
-                drive(0.3);
-                if (pose[1] >= 120 && pose[1] <= 123) {
-                    drive(0);
-                    step++;
-                }
+        directionValue();
+
+        switch (step) {
+            case 0: //Left
+                move(1295, 0, 0);
                 break;
-            case 1: // strafe right!
-                strafe(0.5);
-                if (pose[0] >= 120 && pose[0] <= 123) {
-                    strafe(0);
-                    step++;
-                }
+            case 1: //Forward
+                move(1295, 1829, 0);
                 break;
-            case 2: // drive back!
-                drive(-0.3);
-                if (pose[1] >= -2 && pose[1] <= 1) {
-                    drive(0);
-                    step++;
-                }
+            case 2: //right
+                move(610, 1829, 0);
                 break;
-            case 3: // strafe left!
-                strafe(-0.5);
-                if(pose[0] >= -2 && pose[0] <= 1) {
-                    strafe(0);
-                    step++;
-                }
+            case 3://scoot Forward
+                move(610, 2083, 0);
                 break;
-            case 4: // rotate right!
-                rotate(0.3);
-                if (pose[2] >= (Math.PI / 6) && pose[2] <= ((8 * Math.PI) / 45)) {
-                    rotate(0);
-                    step++;
-                }
+            case 4: //arm
+                arm(4096, 4096);
                 break;
-            case 5: // rotate left!
-                rotate(-0.3);
-                if (pose[2] <=(Math.PI / -6) && pose[2] >= ((-8 * Math.PI) / 45)) {
-                    rotate(0);
-                    step++;
-                }
+            case 5:
+                dropPixel();
+                break;
+            case 6:
+                arm(0, 0);
+                break;
+            case 7: // scoot back
+                move(610, 1829, 0);
+                break;
+            case 8: // left
+                move(1295, 1829, 0);
+                break;
+            case 9://forward
+                move(1295, 2438, 0);
                 break;
             default: // do nothing!
                 drive(0);
@@ -133,47 +113,58 @@ public class OdoBackstage extends OpMode {
         }
     }
 
-
     @Override
     public void stop() {
         // stops code
     }
 
+    public void directionValue() {
+        //encoder values
+        double CurrentLeftEncoder = leftEncoder.getCurrentPosition();
+        double CurrentRightEncoder = rightEncoder.getCurrentPosition();
+        double currentBackEncoder = backEncoder.getCurrentPosition();
 
-    public void runOdometry() {
-        // runs odometry!
+        //y value
+        double yEncoder = (CurrentLeftEncoder + CurrentRightEncoder) / 2;
+        double yDistanceTraveledLoop = yEncoder * distancePerTick;
+        yDistanceTraveled = yDistanceTraveledLoop + yPreviousDistanceTraveled;
+        yPreviousDistanceTraveled = yDistanceTraveled;
 
-        // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
-        double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = backEncoder.getCurrentPosition();
+        //x value
+        double xEncoder = currentBackEncoder;
+        double xDistanceTraveledLoop = xEncoder * distancePerTick;
+        xDistanceTraveled = xDistanceTraveledLoop + xPreviousDistanceTraveled;
+        xPreviousDistanceTraveled = xDistanceTraveled;
 
-        double rawChangeLeft = (((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference) - prevLeftEncoder;
-        double rawChangeRight = (((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference) - prevRightEncoder;
-        double rawChangeBack = (((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference) -prevBackEncoder;
+        //turn value
+        double turnEncoder = (CurrentLeftEncoder - CurrentRightEncoder) / 2;
+        double angleTurnedLoop = turnEncoder * anglePerTick;
+        angleTurned = angleTurnedLoop + previousAngleTurned;
+        if (angleTurned > 360){
+            previousAngleTurned = angleTurned-360;
+        }
+        else{
+            previousAngleTurned = angleTurned;
+        }
+    }
 
-        // find change in theta!
-        double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
-
-        // find change of x (center)!
-        double xCenter = (rawChangeLeft + rawChangeRight) / 2;
-
-        // find change in x perpendicular!
-        double xPerp = rawChangeBack - (yOffSet * deltaTheta);
-
-        //find change in x!
-        double xChange = xCenter * Math.cos(deltaTheta) - xPerp * Math.sin(deltaTheta);
-
-        // find changein y!
-        double yChange = xCenter * Math.sin(deltaTheta) + xPerp * Math.cos(deltaTheta);
-
-        pose[0] += xChange;
-        pose[1] += yChange;
-        pose[2] += deltaTheta;
-
-        prevLeftEncoder = rawLeftEncoder;
-        prevRightEncoder = rawRightEncoder;
-        prevBackEncoder = rawBackEncoder;
+    public void move(int x, int y, int t) {
+        if (t + 1 > angleTurned) {
+            rotate(-0.3);
+        } else if (t - 1 < angleTurned) {
+            rotate(0.3);
+        } else if (y - 10 < yDistanceTraveled) {
+            drive(0.3);
+        } else if (y + 10 > yDistanceTraveled) {
+            drive(-0.3);
+        } else if (x + 10 > xDistanceTraveled) {
+            strafe(-0.3);
+        } else if (x - 10 < xDistanceTraveled) {
+            strafe(0.3);
+        } else {
+            drive(0);
+            step++;
+        }
     }
 
     public void drive(double pow) {
@@ -182,7 +173,6 @@ public class OdoBackstage extends OpMode {
         rightFront.setPower(pow);
         leftBack.setPower(pow);
         rightBack.setPower(pow);
-
     }
 
     public void strafe(double pow) {
@@ -200,6 +190,7 @@ public class OdoBackstage extends OpMode {
         leftBack.setPower(-pow);
         rightBack.setPower(pow);
     }
+
     public void arm(int a, int w){
         double currentArmEncoder = armEncoder.getCurrentPosition();
         double currentWristEncoder = wristEncoder.getCurrentPosition();
@@ -228,5 +219,10 @@ public class OdoBackstage extends OpMode {
         if (currentArmEncoder - 5 >= a && currentArmEncoder + 5 <= a && currentWristEncoder - 5 >= w && currentWristEncoder + 5 <= w){
             step++;
         }
+    }
+
+
+    public void dropPixel() {
+
     }
 }
