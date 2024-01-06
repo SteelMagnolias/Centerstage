@@ -15,14 +15,21 @@ public class OdoWings extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
+    private DcMotor verticalArm1;
+    private DcMotor verticalArm2;
+
+    //declare servos
+    private CRServo intakeClawRight;
+    private CRServo intakeClawLeft;
+    private CRServo wrist1;
+    private CRServo wrist2;
 
     private DcMotor leftEncoder;
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
+    private DcMotor armEncoder;
+    private DcMotor wristEncoder;
 
-    //private DcMotor verticalArm;
-    //private CRServo intakeClawLeft;
-    //private CRServo intakeClawRight;
 
 
     // bot constraints:
@@ -54,10 +61,10 @@ public class OdoWings extends OpMode {
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-
-        //verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
-        //intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
-        //intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
+        verticalArm1 = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
+        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -68,6 +75,17 @@ public class OdoWings extends OpMode {
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalArm1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
+        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+
+        leftEncoder = leftFront;
+        rightEncoder = rightFront;
+        backEncoder = leftBack;
+        armEncoder = verticalArm1;
+        wristEncoder = verticalArm2;
 
         leftEncoder = leftFront;
         rightEncoder = rightFront;
@@ -116,24 +134,14 @@ public class OdoWings extends OpMode {
                 break;
             case 4: // do the drop
                 // raise arm
-
                 /*
-                verticalArm.setPower(0.3);
-                setTimer(3);
-                verticalArm.setPower(0);
+                 arm(4096, 4096);
                 // intake drop both
                 intakeClawLeft.setPower(1);
                 intakeClawRight.setPower(1);
                 setTimer(3);
                 // stop moving intake
-                intakeClawLeft.setPower(0);
-                intakeClawRight.setPower(0);
-
-                // move arm down
-                verticalArm.setPower(-0.3);
-                setTimer(3);
-                // stop moving arm
-                verticalArm.setPower(0);
+                 arm(0,0);
                 */
 
                 step++;
@@ -255,6 +263,36 @@ public class OdoWings extends OpMode {
         rightFront.setPower(pow);
         leftBack.setPower(-pow);
         rightBack.setPower(pow);
+    }
+
+    public void arm(int a, int w){
+        double currentArmEncoder = armEncoder.getCurrentPosition();
+        double currentWristEncoder = wristEncoder.getCurrentPosition();
+        if (currentArmEncoder + 5 <= a){
+            verticalArm1.setPower(0.8);
+            verticalArm2.setPower(0.8);
+        } else if (currentArmEncoder - 5 >= a){
+            verticalArm1.setPower(-0.8);
+            verticalArm2.setPower(-0.8);
+        } else {
+            verticalArm1.setPower(0);
+            verticalArm2.setPower(0);
+        }
+
+        if (currentWristEncoder + 5 <= w){
+            wrist1.setPower(1);
+            wrist2.setPower(1);
+        } else if (currentWristEncoder - 5 >= w) {
+            wrist1.setPower(-1);
+            wrist2.setPower(-1);
+        } else {
+            wrist1.setPower(0);
+            wrist2.setPower(0);
+        }
+
+        if (currentArmEncoder - 5 >= a && currentArmEncoder + 5 <= a && currentWristEncoder - 5 >= w && currentWristEncoder + 5 <= w){
+            step++;
+        }
     }
 
     public void setTimer(double duration) {
