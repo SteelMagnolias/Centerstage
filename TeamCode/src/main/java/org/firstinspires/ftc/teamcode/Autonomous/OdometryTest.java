@@ -18,6 +18,8 @@ public class OdometryTest extends OpMode {
     private DcMotor leftBack;
     private DcMotor rightBack;
 
+    private DcMotor wrist; // core hex on wrist
+
     private DcMotor leftEncoder;
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
@@ -76,6 +78,8 @@ public class OdometryTest extends OpMode {
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
 
+        wrist = hardwareMap.get(DcMotor.class, "wrist");
+
         leftBack.setDirection(DcMotor.Direction.REVERSE );
 
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -97,9 +101,9 @@ public class OdometryTest extends OpMode {
         //hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
 
-        leftEncoder = leftBack;
-        rightEncoder = leftFront;
-        backEncoder = leftBack;
+        leftEncoder = rightFront;
+        rightEncoder = wrist;
+        backEncoder = rightBack;
 
         prevLeftEncoder = leftEncoder.getCurrentPosition();
         prevRightEncoder = rightEncoder.getCurrentPosition();
@@ -120,7 +124,7 @@ public class OdometryTest extends OpMode {
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[0] >= 6000000) {
+                if (pose[0] >= 1000) {
                     drive(0);
                     step++;
                 }
@@ -187,7 +191,7 @@ public class OdometryTest extends OpMode {
 
         // distance wheel turns in cm!
         double rawLeftEncoder = leftEncoder.getCurrentPosition();
-        double rawRightEncoder = -rightEncoder.getCurrentPosition();
+        double rawRightEncoder = rightEncoder.getCurrentPosition();
         double rawBackEncoder = -backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
