@@ -24,8 +24,7 @@ public class Drive extends OpMode {
     private DcMotor verticalArm;
     private DcMotor verticalArm2;
 
-    private CRServo wrist;
-    private CRServo wrist2;
+    private DcMotor wrist;
     //private DcMotor hangArm;
 
     //private CRServo hangBolts;
@@ -38,20 +37,29 @@ public class Drive extends OpMode {
 
 
     // sensors
-    //private DistanceSensor distanceSensor;
-    //private AnalogInput potentiometer;
+    private AnalogInput potentiometer;
+    double potentiometerVoltage;
 
     // PID
     double integralSum = 0;
     double lasterror = 0;
     ElapsedTime timer = new ElapsedTime();
 
-    // PID Lift
-    double KpLift = 0;
-    double KiLift= 0;
-    double KdLift = 0;
-    double referenceLift = 0;
+    // PID Arm
+    double KpArm = 0.2;
+    double KiArm= 0;
+    double KdArm = 0;
+    double referenceArmDown = -513;
+    double referenceArmUp = 4;
+    double referenceArmCurled = 0;
 
+    double KpWrist = 3.2;
+    double KiWrist = 0;
+    double KdWrist = 0;
+    // volts
+    double referenceWristDown = 0.1;
+    double referenceWristUp = 2.9;
+    double referenceWristCurled = 1.2;
 
 
     // cameras
@@ -61,15 +69,16 @@ public class Drive extends OpMode {
     double pow; // motor power for wheels
     double armPow = 0.6; // arm power
     double theta; // angle of wheels joystick
+    double wristPower = 0.8;
 
+    enum ArmState {
+        ARM_UP,
+        ARM_DOWN,
+        EMERGENCY,
+        MANUAL,
+    }
 
-    // potentiometer limits
-    //double liftUpVoltage = 0;
-    //double liftDownVoltage = 0;
-    //int liftStep = 0; // step in lifting process
-
-    double liftPow = 0.7;
-
+    ArmState armPos = ArmState.ARM_DOWN;
 
 
     public void init() {
@@ -79,9 +88,13 @@ public class Drive extends OpMode {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
 
+        leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
         leftBack.setDirection(DcMotor.Direction.REVERSE );
-
-
 
         // reverse motors
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
@@ -92,13 +105,10 @@ public class Drive extends OpMode {
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
-        wrist = hardwareMap.get(CRServo.class, "wrist");
-        wrist2 = hardwareMap.get(CRServo.class, "wrist2");
-        //hangArm = hardwareMap.get(DcMotor.class, "hangArm");
-        //hangArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //hangBolts = hardwareMap.get(CRServo.class, "hangBolts");
+        wrist = hardwareMap.get(DcMotor.class, "wrist");
 
-        //distanceSensor = hardwareMap.get(DistanceSensor.class, "distanceSensor");
+        //sensors
+        potentiometer = hardwareMap.get(AnalogInput.class, "potentiometer");
     }
 
 
@@ -138,10 +148,10 @@ public class Drive extends OpMode {
         boolean buttondown2 = gamepad2.dpad_down;
         double r_trig2 = gamepad2.right_trigger;
         double l_trig2 = gamepad2.left_trigger;
-        boolean options2 = gamepad2.options;
+        boolean back2 = gamepad2.back;
 
         // sensor readings
-        //double potentiometerVoltage = potentiometer.getVoltage();
+        potentiometerVoltage = potentiometer.getVoltage();
 
         // telemetry
         telemetry.addData("Gamepad:", 1);
@@ -174,7 +184,8 @@ public class Drive extends OpMode {
         telemetry.addData("rb2", rb2);
 
         telemetry.addData("Other:", "Sensors");
-        //telemetry.addData("potentiometerVoltage", potentiometerVoltage);
+        telemetry.addData("potentiometerVoltage", potentiometerVoltage);
+        telemetry.addData("armEncoder", verticalArm2.getCurrentPosition());
 
 
 
@@ -319,13 +330,6 @@ public class Drive extends OpMode {
             rightBack.setPower(0);
         }
 
-        if (options2) {
-            // set pid to keep in position
-            armPow = PIDcontrol(KpLift, KiLift, KdLift, referenceLift, ((verticalArm.getPower() + verticalArm2.getPower())/2));
-            verticalArm.setPower(armPow);
-            verticalArm2.setPower(armPow);
-        }
-
 
 
         // emergency stop
@@ -333,55 +337,90 @@ public class Drive extends OpMode {
             stop();
         }
 
+        // arm control
 
-      if (Math.abs(lefty2) >= 0.1) {
-          verticalArm.setPower(armPow * lefty2);
-          verticalArm2.setPower(armPow * lefty2);
-      }
-      else if (buttonup2 ){
-          verticalArm.setPower(armPow*0.5);
-          verticalArm2.setPower(armPow*0.5);
-      }
-      else if (buttondown2) {
-          verticalArm.setPower(armPow*-0.5);
-          verticalArm2.setPower(armPow*-0.5);
+        switch(armPos) {
+            case ARM_DOWN:
+                //wrist.setPower(PIDcontrol(KpWrist, KiWrist, KdWrist, referenceWristDown, potentiometerVoltage));
 
-      }
-      /*else if (Math.abs (righty2) >= 0.1 || Math.abs (rightx2) >=0.1){ // problem with arm hold comp
-            if (Math.abs(lefty2) >= 0.1){
-                verticalArm.setPower(armPow*lefty2);
-                verticalArm2.setPower(armPow*lefty2);
-            }
-            else {
-                verticalArm.setPower(-0.05);
-                verticalArm2.setPower(-0.05);
+                verticalArm.setPower(PIDcontrol(KpArm, KiArm, KdArm, referenceArmDown, verticalArm2.getCurrentPosition()));
 
-            }
-      }*/
-      else {
-          // no movement
-          verticalArm.setPower(0.05); // just enough to keep from falling was 0.05 changed to see if we need it after robot adjustments
-          verticalArm2.setPower(0.05);
-      }
+                if (y2) {
+                    // move arm up
+                    armPos = ArmState.ARM_UP;
+                }
+                else if (x2) {
+                    // STOP!
+                    armPos = ArmState.EMERGENCY;
+                }
 
 
-        if (Math.abs(righty2) > 0.1) {
-            // wrist
-            if (righty2 > 0) {
-                wrist.setPower(1);
-                wrist2.setPower(1);
-            }
-            else {
-                wrist.setPower(-1);
-                wrist2.setPower(-1);
-            }
+                if (back2) {
+                    // change to manual mode
+                    armPos = ArmState.MANUAL;
+                }
+
+                break;
+            case ARM_UP:
+                //wrist.setPower(PIDcontrol(KpWrist, KiWrist, KdWrist, referenceWristUp, potentiometerVoltage));
+
+                verticalArm.setPower(PIDcontrol(KpArm, KiArm, KdArm, referenceArmUp, verticalArm2.getCurrentPosition()));
+
+                if (a2) {
+                    // move to down position
+                    armPos = ArmState.ARM_DOWN;
+                }
+                else if (x2) {
+                    armPos = ArmState.EMERGENCY;
+                }
+
+                if (back2) {
+                    // change to manual mode
+                    armPos = ArmState.MANUAL;
+                }
+                break;
+            case EMERGENCY:
+                break;
+            case MANUAL:
+                // manual modes
+
+                // arm joystick
+                if (Math.abs(lefty2) > 0.1) {
+                    verticalArm.setPower(lefty2 * 0.3);
+                    verticalArm2.setPower(lefty2 * 0.3);
+                }
+                else {
+                    verticalArm.setPower(lefty2 * 0);
+                }
+
+                // wrist joystick
+                if (Math.abs(righty2) > 0.1) {
+                    wrist.setPower(righty2 * 0.6);
+                }
+                else {
+                    wrist.setPower(0);
+                }
+
+
+                // into another case
+                if (a2) {
+                    // move to down position
+                    armPos = ArmState.ARM_DOWN;
+                }
+                if (x2) {
+                    armPos = ArmState.EMERGENCY;
+                }
+                if (y2) {
+                    // move arm up
+                    armPos = ArmState.ARM_UP;
+                }
+
+                if (b2) {
+                    // reset encoders
+                    resetArmEncoders();
+                }
+                break;
         }
-        else {
-            wrist.setPower(0);
-            wrist2.setPower(0);
-        }
-
-
 
 
         if (l_trig2 > 0.1) {
@@ -402,50 +441,6 @@ public class Drive extends OpMode {
         else {
             intakeClawLeft.setPower(0);
         }
-
-
-    /* if (a2) {
-          // throw plane
-          throwPlane();
-      } */
-
-        /*
-        switch(liftStep){
-            case 0:
-                // not in a lift process
-                if (rb2) {
-                    liftStep++;
-                }
-            case 1:
-                //raise lift
-                hangArm.setPower(0.5);
-                break;
-            case 2:
-                //drive forward
-
-                if (lb2) {
-                    // will skips to case 3
-                    liftStep++;
-                }
-                break;
-            case 3:
-                // lower lift (lifts bot)
-                break;
-            case 4:
-                // hold
-                hangArm.setPower(0);
-                break;
-            case 5:
-                // raise lift until back on ground
-                break;
-            case 6:
-                // back back up
-            default:
-                //raise bot
-                break;
-        }
-
-         */
 
 
     }
@@ -472,7 +467,13 @@ public class Drive extends OpMode {
         timer.reset();
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
+        telemetry.addData("PIDOutPut", output);
         return output;
 
+    }
+
+    public void resetArmEncoders() {
+        referenceArmDown = verticalArm.getCurrentPosition();
+        referenceArmUp = referenceArmDown + 517;
     }
 }
