@@ -221,8 +221,7 @@ public class alternativeOdometry extends OpMode {
         }
     }
 
-
     public void dropPixel() {
-
+        
     }
 }
