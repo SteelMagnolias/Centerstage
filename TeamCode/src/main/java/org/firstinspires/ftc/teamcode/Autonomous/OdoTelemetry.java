@@ -3,14 +3,14 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 
-
-@Autonomous(name = "OdometryTest", group="Iterative OpMode")
-public class OdometryTest extends OpMode {
+@Autonomous(name = "OdoTelemetry", group="Iterative OpMode")
+public class OdoTelemetry extends OpMode {
 
     // declare motors!
     private DcMotor leftFront;
@@ -70,6 +70,7 @@ public class OdometryTest extends OpMode {
 
     @Override
     public void init() {
+        // init!
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
@@ -117,61 +118,6 @@ public class OdometryTest extends OpMode {
 
         runOdometry();
 
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
-
-
-        switch(step) {
-            case 0: // drive forward!
-                drive(0.3);
-                if (pose[0] >= 60) {
-                    drive(0);
-                    step++;
-                }
-
-                //setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
-                //drivePID(0); // keep angle at 0 (moving forward in straight line)
-                break;
-            case 1: // strafe right!
-                strafe(-0.3);
-                if (pose[1] >= 60) {
-                    strafe(0);
-                    step++;
-                }
-                break;
-            case 2: // drive back!
-                drive(-0.3);
-                if (pose[0] <= 0) {
-                    drive(0);
-                    step++;
-                }
-                break;
-            case 3: // strafe left!
-                strafe(0.3);
-                if(pose[1] <= 0) {
-                    strafe(0);
-                    step++;
-                }
-                break;
-            case 4: // rotate right!
-                rotate(0.3);
-                if (pose[2] >= (Math.PI / 6)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 5: // rotate left!
-                rotate(-0.3);
-                if (pose[2] <=(Math.PI / -6)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            default: // do nothing!
-                drive(0);
-                stop();
-        }
-
         telemetry.addData("Pose0", pose[0]);
         telemetry.addData("Pose1", pose[1]);
         telemetry.addData("Pose2", pose[2]);
@@ -190,9 +136,9 @@ public class OdometryTest extends OpMode {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = -backEncoder.getCurrentPosition();
+        double rawBackEncoder = backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
