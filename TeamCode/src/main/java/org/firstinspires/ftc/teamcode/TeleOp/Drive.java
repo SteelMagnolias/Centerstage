@@ -42,22 +42,29 @@ public class Drive extends OpMode {
 
     // PID
     double integralSum = 0;
+    double integralSum2 = 0;
     double lasterror = 0;
+    double lasterror2 = 0;
     ElapsedTime timer = new ElapsedTime();
+    ElapsedTime timer2 = new ElapsedTime();
 
     // PID Arm
-    double KpArm = 0.2;
+    double KpArm = 0;
     double KiArm= 0;
     double KdArm = 0;
-    double referenceArmDown = -513;
-    double referenceArmUp = 4;
+    double referenceArmDown = -480;
+    double referenceArmUp = -4800;
     double referenceArmCurled = 0;
 
-    double KpWrist = 3.2;
-    double KiWrist = 0;
-    double KdWrist = 0;
+    double KpWristDown = 3.2;
+    double KiWristDown = 0;
+    double KdWristDown = 0;
+
+    double KpWristUp = 1.3;
+    double KiWristUp = 0;
+    double KdWristUp = 0.2;
     // volts
-    double referenceWristDown = 0.1;
+    double referenceWristDown = 0.07;
     double referenceWristUp = 2.9;
     double referenceWristCurled = 1.2;
 
@@ -78,7 +85,7 @@ public class Drive extends OpMode {
         MANUAL,
     }
 
-    ArmState armPos = ArmState.ARM_DOWN;
+    ArmState armPos = ArmState.MANUAL;
 
 
     public void init() {
@@ -98,8 +105,10 @@ public class Drive extends OpMode {
 
         // reverse motors
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
         verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
+        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
@@ -322,12 +331,6 @@ public class Drive extends OpMode {
             leftBack.setPower(-pow);
             rightFront.setPower(pow);
             rightBack.setPower(pow);
-        } else {
-            // stops movement
-            leftFront.setPower(0);
-            leftBack.setPower(0);
-            rightFront.setPower(0);
-            rightBack.setPower(0);
         }
 
 
@@ -341,9 +344,11 @@ public class Drive extends OpMode {
 
         switch(armPos) {
             case ARM_DOWN:
-                //wrist.setPower(PIDcontrol(KpWrist, KiWrist, KdWrist, referenceWristDown, potentiometerVoltage));
+                wrist.setPower(PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, potentiometerVoltage));
 
-                verticalArm.setPower(PIDcontrol(KpArm, KiArm, KdArm, referenceArmDown, verticalArm2.getCurrentPosition()));
+                //armPow = (PIDControlArm(KpArm, KiArm, KdArm, referenceArmDown, verticalArm2.getCurrentPosition()));
+                //verticalArm.setPower(armPow);
+                //verticalArm2.setPower(armPow);
 
                 if (y2) {
                     // move arm up
@@ -354,17 +359,21 @@ public class Drive extends OpMode {
                     armPos = ArmState.EMERGENCY;
                 }
 
-
                 if (back2) {
                     // change to manual mode
                     armPos = ArmState.MANUAL;
+                    verticalArm.setPower(0);
+                    verticalArm2.setPower(0);
+                    wrist.setPower(0);
                 }
 
                 break;
             case ARM_UP:
-                //wrist.setPower(PIDcontrol(KpWrist, KiWrist, KdWrist, referenceWristUp, potentiometerVoltage));
+                wrist.setPower(PIDControlWristUp(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, potentiometerVoltage));
 
-                verticalArm.setPower(PIDcontrol(KpArm, KiArm, KdArm, referenceArmUp, verticalArm2.getCurrentPosition()));
+                //armPow = (PIDControlArm(KpArm, KiArm, KdArm, referenceArmUp, verticalArm2.getCurrentPosition()));
+                //verticalArm.setPower(armPow);
+                //verticalArm2.setPower(armPow);
 
                 if (a2) {
                     // move to down position
@@ -377,21 +386,16 @@ public class Drive extends OpMode {
                 if (back2) {
                     // change to manual mode
                     armPos = ArmState.MANUAL;
+                    verticalArm.setPower(0);
+                    verticalArm2.setPower(0);
+                    wrist.setPower(0);
                 }
                 break;
             case EMERGENCY:
+                wrist.setPower(0);
                 break;
             case MANUAL:
                 // manual modes
-
-                // arm joystick
-                if (Math.abs(lefty2) > 0.1) {
-                    verticalArm.setPower(lefty2 * 0.3);
-                    verticalArm2.setPower(lefty2 * 0.3);
-                }
-                else {
-                    verticalArm.setPower(lefty2 * 0);
-                }
 
                 // wrist joystick
                 if (Math.abs(righty2) > 0.1) {
@@ -420,6 +424,16 @@ public class Drive extends OpMode {
                     resetArmEncoders();
                 }
                 break;
+        }
+
+        // arm joystick
+        if (Math.abs(lefty2) > 0.1) {
+            verticalArm.setPower(lefty2 * 0.3);
+            verticalArm2.setPower(lefty2 * 0.3);
+        }
+        else {
+            verticalArm.setPower(0);
+            verticalArm2.setPower(0);
         }
 
 
@@ -458,7 +472,7 @@ public class Drive extends OpMode {
         // throw plane from behind truss
     }
 
-    public double PIDcontrol(double Kp, double Ki, double Kd, double reference, double state){
+    public double PIDControlWristDown(double Kp, double Ki, double Kd, double reference, double state){
         double error = reference - state;
         integralSum += error * timer.seconds();
         double derivative = (error - lasterror ) / timer.seconds();
@@ -467,13 +481,27 @@ public class Drive extends OpMode {
         timer.reset();
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
-        telemetry.addData("PIDOutPut", output);
+        telemetry.addData("PIDOutPutWrist", output);
+        return output;
+
+    }
+
+    public double PIDControlWristUp(double Kp, double Ki, double Kd, double reference, double state){
+        double error = reference - state;
+        integralSum2 += error * timer2.seconds();
+        double derivative = (error - lasterror2 ) / timer2.seconds();
+        lasterror2 = error;
+
+        timer2.reset();
+
+        double output = (error * Kp) + (derivative * Kd) + (integralSum2 *Ki);
+        telemetry.addData("PIDOutPutArm", output);
         return output;
 
     }
 
     public void resetArmEncoders() {
-        referenceArmDown = verticalArm.getCurrentPosition();
-        referenceArmUp = referenceArmDown + 517;
+        referenceArmDown = verticalArm2.getCurrentPosition();
+        referenceArmUp = referenceArmDown + 4320;
     }
 }
