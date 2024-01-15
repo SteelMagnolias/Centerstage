@@ -7,8 +7,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -20,13 +18,13 @@ import android.util.Size;
 
 
 //define class and name for driver hub
-@Autonomous(name = "CameraTest", group="Iterative OpMode")
-public class CameraTest extends LinearOpMode {
+@Autonomous(name = "oneCameraTest", group="Iterative OpMode")
+public class oneCameraTest extends LinearOpMode {
 
 
     //define camera
-    private WebcamName camera1;
-    private WebcamName camera2;
+    private WebcamName camera;
+
 
     //define processor variable
     private TfodProcessor tfod;
@@ -47,27 +45,18 @@ public class CameraTest extends LinearOpMode {
 
     //alliance color variable 1 red - 1 blue
     int alliance=1;
-    int cam=1;
     //cord x variable
     double x;
     //cord y variable
     double y;
     @Override
     public void runOpMode() throws InterruptedException {
-        //if we have started and have not stopped
-        camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
-        camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
-
+        //see function
         initTfod();
+        //if we have started and have not stopped
         while(!opModeIsActive() && !isStopRequested()) {
             //if tfod has been initialized
             if (tfod != null) {
-                if(cam == 1) {
-                    visionPortal.setActiveCamera(camera1);
-                }
-                else if ( cam == 2){
-                    visionPortal.setActiveCamera(camera2);
-                }
                 //see function
                 tfodtelemetry();
                 //see function
@@ -113,9 +102,7 @@ public class CameraTest extends LinearOpMode {
         //start building custom vision portal
         VisionPortal.Builder builder2 = new VisionPortal.Builder();
         //pick a camera
-        CameraName switchableCamera = ClassFactory.getInstance()
-                .getCameraManager().nameForSwitchableCamera(camera1, camera2);
-        builder2.setCamera(switchableCamera);
+        builder2.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
         // set camera resolution
         //this one already has pre calibrated apriltag info
         builder2.setCameraResolution(new Size(640, 480));
@@ -137,7 +124,6 @@ public class CameraTest extends LinearOpMode {
 
         //processor is on
         visionPortal.setProcessorEnabled(tfod, true);
-        visionPortal.setActiveCamera(camera1);
     }
 
 
@@ -188,33 +174,32 @@ public class CameraTest extends LinearOpMode {
 
         // determine spike mark
         //if x is left of set value
-        if (cam == 1 && x < 300){
-                spikeMark = 1;
-                telemetry.addLine("Spike Mark Left-1");
-                cam =1;
-        }
-        else if (cam == 1 && x > 299){
-            cam = 2;
+        if (x<400){
+            //set left
+            spikeMark = 1;
+            //say set left
+            telemetry.addLine("Spike Marker Left 1");
         }
         //if x is in between set values
-        else if (cam == 2) {
-            if (x > 300){
-                spikeMark =2;
-                telemetry.addLine("Spike Mark Middle-2");
-                cam = 1;
-            }
-            else if (x < 299){
-                spikeMark = 3;
-                telemetry.addLine("Spike Mark Right-3");
-                cam = 1;
-            }
+        else if (400<x & x<1450) {
+            //set center
+            spikeMark = 2;
+            //say set center
+            telemetry.addLine("Spike Marker Center 2");
+        }
+        //if more than set value
+        else if (x>1450){
+            //set right
+            spikeMark = 3;
+            // say set right
+            telemetry.addLine("Spike Marker Right 3");
         }
         //if nothing is seen
         else{
             //set right
             spikeMark = 3;
             //say set right but also default
-            telemetry.addLine("Spike Mark Right(Default)-3");
+            telemetry.addLine("Spike Marker Default (Right) 3");
         }
 
 
