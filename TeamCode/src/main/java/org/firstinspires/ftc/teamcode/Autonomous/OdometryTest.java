@@ -35,8 +35,8 @@ public class OdometryTest extends OpMode {
 
 
     // bot constraints:
-    double trackWidth = 20.32; //(cm)!
-    double yOffSet = -19.0; //(cm)!
+    double trackWidth = 19.2; //(cm)!
+    double yOffSet = -18.85; //(cm)!
     double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
@@ -79,16 +79,15 @@ public class OdometryTest extends OpMode {
 
         leftBack.setDirection(DcMotor.Direction.REVERSE );
 
-
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
         verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
@@ -155,14 +154,14 @@ public class OdometryTest extends OpMode {
                 }
                 break;
             case 4: // rotate right!
-                rotate(0.3);
+                rotate(-0.3);
                 if (pose[2] >= (Math.PI / 6)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 5: // rotate left!
-                rotate(-0.3);
+                rotate(0.3);
                 if (pose[2] <=(Math.PI / -6)) {
                     rotate(0);
                     step++;
@@ -191,7 +190,7 @@ public class OdometryTest extends OpMode {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
         double rawBackEncoder = -backEncoder.getCurrentPosition();
 
@@ -199,9 +198,9 @@ public class OdometryTest extends OpMode {
         telemetry.addData("Raw Right", rawRightEncoder);
         telemetry.addData("Raw Back", rawBackEncoder);
 
-        double rawChangeLeft = rawLeftEncoder - prevLeftEncoder;
-        double rawChangeRight = rawRightEncoder - prevRightEncoder;
-        double rawChangeBack = rawBackEncoder - prevBackEncoder;
+        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference;
+        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference;
+        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference;
 
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Right Change", rawChangeRight);
