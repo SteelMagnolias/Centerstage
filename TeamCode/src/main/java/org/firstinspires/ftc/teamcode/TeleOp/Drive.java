@@ -393,6 +393,16 @@ public class Drive extends OpMode {
                 break;
             case EMERGENCY:
                 wrist.setPower(0);
+
+                if (a2) {
+                    armPos = ArmState.ARM_DOWN;
+                }
+                if (y2) {
+                    armPos = ArmState.ARM_UP;
+                }
+                if (back2) {
+                    armPos = ArmState.MANUAL;
+                }
                 break;
             case MANUAL:
                 // manual modes

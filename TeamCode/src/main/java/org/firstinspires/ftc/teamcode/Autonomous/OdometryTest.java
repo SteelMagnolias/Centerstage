@@ -101,6 +101,7 @@ public class OdometryTest extends OpMode {
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
+        // fix encoders resets - wrong motors reset might be issue!
         leftEncoder = rightFront;
         rightEncoder = wrist;
         backEncoder = rightBack;
