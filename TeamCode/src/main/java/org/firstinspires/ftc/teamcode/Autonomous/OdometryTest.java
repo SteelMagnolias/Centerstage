@@ -54,20 +54,6 @@ public class OdometryTest extends OpMode {
 
     int logCount = 0;
 
-    ElapsedTime timer = new ElapsedTime();
-
-    // PID STUFF
-    double integralSum = 0;
-    double Kp = 0;
-    double Ki= 0;
-    double Kd = 0;
-    //could add another controller if needed
-    double reference = 0.8;
-
-
-    ElapsedTime PIDTimer = new ElapsedTime();
-    double lasterror = 0;
-
     @Override
     public void init() {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
@@ -124,7 +110,7 @@ public class OdometryTest extends OpMode {
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[0] >= 60) {
+                if (pose[1] >= 60) {
                     drive(0);
                     step++;
                 }
@@ -134,21 +120,21 @@ public class OdometryTest extends OpMode {
                 break;
             case 1: // strafe right!
                 strafe(-0.3);
-                if (pose[1] >= 60) {
+                if (pose[0] >= 60) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 2: // drive back!
                 drive(-0.3);
-                if (pose[0] <= 0) {
+                if (pose[1] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 3: // strafe left!
                 strafe(0.3);
-                if(pose[1] <= 0) {
+                if(pose[0] <= 0) {
                     strafe(0);
                     step++;
                 }
@@ -226,8 +212,8 @@ public class OdometryTest extends OpMode {
         double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
         telemetry.addData("yChange", yChange);
 
-        pose[0] += xChange;
-        pose[1] += yChange;
+        pose[0] += yChange;
+        pose[1] += xChange;
         pose[2] += deltaTheta;
 
         prevLeftEncoder = rawLeftEncoder;
@@ -280,49 +266,5 @@ public class OdometryTest extends OpMode {
         rightFront.setPower(pow);
         leftBack.setPower(-pow);
         rightBack.setPower(pow);
-    }
-
-    public void setTimer(double duration) {
-        timer.reset();
-        while (true) { // this is bad practice, don't do it in any other sense
-            if (timer.seconds() >= duration) {
-                break;
-            }
-        }
-    }
-
-    public void drivePID(double angle) {
-        double error = PIDcontrol(angle, pose[2]);
-
-        // now you can put the 0.8 on a pid as well to track the y position at the same time
-
-        leftFront.setPower(0.8 + error);
-        rightFront.setPower(0.8 - error);
-        leftBack.setPower(0.8 + error);
-        rightBack.setPower(0.8 - error);
-    }
-
-    public void setPIDSettings (double p,  double i, double d) {
-        integralSum = 0;
-        Kp = p;
-        Ki= i;
-        Kd = d;
-
-
-        PIDTimer = new ElapsedTime();
-        lasterror = 0;
-    }
-
-    public double PIDcontrol(double reference, double state){
-        double error = reference - state;
-        integralSum += error * PIDTimer.seconds();
-        double derivative = (error - lasterror ) / PIDTimer.seconds();
-        lasterror = error;
-
-        PIDTimer.reset();
-
-        double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
-        return output;
-
     }
 }

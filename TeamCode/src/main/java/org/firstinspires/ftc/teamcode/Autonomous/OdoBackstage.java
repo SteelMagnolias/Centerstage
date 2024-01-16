@@ -3,11 +3,13 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
 
-@Autonomous(name = "OdometryBackstage", group="Iterative OpMode")
+
+@Autonomous(name = "OdoBackstage", group="Iterative OpMode")
 public class OdoBackstage extends OpMode {
 
     // declare motors!
@@ -15,27 +17,27 @@ public class OdoBackstage extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    private DcMotor verticalArm1;
-    private DcMotor verticalArm2;
 
-    //declare servos
-    private CRServo intakeClawRight;
-    private CRServo intakeClawLeft;
-    private CRServo wrist1;
-    private CRServo wrist2;
+    private DcMotor wrist; // core hex on wrist
 
     private DcMotor leftEncoder;
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
-    private DcMotor armEncoder;
-    private DcMotor wristEncoder;
 
+    private DcMotor verticalArm;
+    private DcMotor verticalArm2;
+
+
+
+    // servos
+    private CRServo intakeClawRight;
+    private CRServo intakeClawLeft;
 
 
     // bot constraints:
-    double trackWidth = 21.5; //(cm)!
-    double yOffSet = 10.5; //(cm)!
-    double wheelRadius = 4.8; // centimeters!
+    double trackWidth = 19.2; //(cm)!
+    double yOffSet = -18.85; //(cm)!
+    double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
@@ -50,79 +52,103 @@ public class OdoBackstage extends OpMode {
     // auton step / action!
     int step = 0;
 
+    int logCount = 0;
 
     @Override
     public void init() {
-        // init!
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        verticalArm1 = hardwareMap.get(DcMotor.class, "verticalArm");
-        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
+
+        wrist = hardwareMap.get(DcMotor.class, "wrist");
+
+        leftBack.setDirection(DcMotor.Direction.REVERSE );
+
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalArm1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+
+        verticalArm.setDirection(DcMotor.Direction.REVERSE);
+        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
-        leftEncoder = leftFront;
-        rightEncoder = rightFront;
-        backEncoder = leftBack;
-        armEncoder = verticalArm1;
-        wristEncoder = verticalArm2;
+        // fix encoders resets - wrong motors reset might be issue!
+        leftEncoder = rightFront;
+        rightEncoder = wrist;
+        backEncoder = rightBack;
+
+        prevLeftEncoder = leftEncoder.getCurrentPosition();
+        prevRightEncoder = rightEncoder.getCurrentPosition();
+        prevBackEncoder = -backEncoder.getCurrentPosition();
     }
 
 
     @Override
     public void loop() {
         // repeating code - contains state machine!
+
         runOdometry();
+
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
+
 
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[1] >= 120 && pose[1] <= 123) {
+                if (pose[0] >= 60) {
                     drive(0);
                     step++;
                 }
+
+                //setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
+                //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
             case 1: // strafe right!
-                strafe(0.5);
-                if (pose[0] >= 120 && pose[0] <= 123) {
+                strafe(-0.3);
+                if (pose[1] >= 60) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 2: // drive back!
                 drive(-0.3);
-                if (pose[1] >= -2 && pose[1] <= 1) {
+                if (pose[0] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 3: // strafe left!
-                strafe(-0.5);
-                if(pose[0] >= -2 && pose[0] <= 1) {
+                strafe(0.3);
+                if(pose[1] <= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 4: // rotate right!
-                rotate(0.3);
-                if (pose[2] >= (Math.PI / 6) && pose[2] <= ((8 * Math.PI) / 45)) {
+                rotate(-0.3);
+                if (pose[2] >= (Math.PI / 6)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 5: // rotate left!
-                rotate(-0.3);
-                if (pose[2] <=(Math.PI / -6) && pose[2] >= ((-8 * Math.PI) / 45)) {
+                rotate(0.3);
+                if (pose[2] <=(Math.PI / -6)) {
                     rotate(0);
                     step++;
                 }
@@ -131,6 +157,13 @@ public class OdoBackstage extends OpMode {
                 drive(0);
                 stop();
         }
+
+        telemetry.addData("Pose0", pose[0]);
+        telemetry.addData("Pose1", pose[1]);
+        telemetry.addData("Pose2", pose[2]);
+        telemetry.addData("Case", step);
+
+        telemetry.update();
     }
 
 
@@ -139,41 +172,75 @@ public class OdoBackstage extends OpMode {
         // stops code
     }
 
-
     public void runOdometry() {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = backEncoder.getCurrentPosition();
+        double rawBackEncoder = -backEncoder.getCurrentPosition();
 
-        double rawChangeLeft = (((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference) - prevLeftEncoder;
-        double rawChangeRight = (((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference) - prevRightEncoder;
-        double rawChangeBack = (((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference) -prevBackEncoder;
+        telemetry.addData("Raw Left", rawLeftEncoder);
+        telemetry.addData("Raw Right", rawRightEncoder);
+        telemetry.addData("Raw Back", rawBackEncoder);
+
+        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference;
+        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference;
+        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference;
+
+        telemetry.addData("Raw Left Change", rawChangeLeft);
+        telemetry.addData("Raw Right Change", rawChangeRight);
+        telemetry.addData("Raw Back Change", rawChangeBack);
 
         // find change in theta!
         double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
+        telemetry.addData("deltaTheta", deltaTheta);
 
         // find change of x (center)!
         double xCenter = (rawChangeLeft + rawChangeRight) / 2;
+        telemetry.addData("xCenter", xCenter);
 
         // find change in x perpendicular!
         double xPerp = rawChangeBack - (yOffSet * deltaTheta);
+        telemetry.addData("xPerp", xPerp);
 
         //find change in x!
-        double xChange = xCenter * Math.cos(deltaTheta) - xPerp * Math.sin(deltaTheta);
+        double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
+        telemetry.addData("xChange", xChange);
 
         // find changein y!
-        double yChange = xCenter * Math.sin(deltaTheta) + xPerp * Math.cos(deltaTheta);
+        double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
+        telemetry.addData("yChange", yChange);
 
-        pose[0] += xChange;
-        pose[1] += yChange;
+        pose[0] += yChange;
+        pose[1] += xChange;
         pose[2] += deltaTheta;
 
         prevLeftEncoder = rawLeftEncoder;
         prevRightEncoder = rawRightEncoder;
         prevBackEncoder = rawBackEncoder;
+
+        telemetry.addData("prevLeftEncoder", rawChangeLeft);
+        telemetry.addData("Raw Left Change", rawChangeLeft);
+        telemetry.addData("Raw Left Change", rawChangeLeft);
+
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawLeftEncoder: " + rawLeftEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawRightEncoder: " + rawRightEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawBackEncoder: " + rawBackEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[0]: " + pose[0]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[1]: " + pose[1]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[2]: " + pose[2]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    ");
+
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
     }
 
     public void drive(double pow) {
@@ -186,7 +253,7 @@ public class OdoBackstage extends OpMode {
     }
 
     public void strafe(double pow) {
-        // strafe left or right
+        // strafe left
         leftFront.setPower(-pow);
         rightFront.setPower(pow);
         leftBack.setPower(pow);
@@ -194,39 +261,10 @@ public class OdoBackstage extends OpMode {
     }
 
     public void rotate(double pow) {
-        // rotate left or right
+        // rotate left or right counter clockwise
         leftFront.setPower(-pow);
         rightFront.setPower(pow);
         leftBack.setPower(-pow);
         rightBack.setPower(pow);
-    }
-    public void arm(int a, int w){
-        double currentArmEncoder = armEncoder.getCurrentPosition();
-        double currentWristEncoder = wristEncoder.getCurrentPosition();
-        if (currentArmEncoder + 5 <= a){
-            verticalArm1.setPower(0.8);
-            verticalArm2.setPower(0.8);
-        } else if (currentArmEncoder - 5 >= a){
-            verticalArm1.setPower(-0.8);
-            verticalArm2.setPower(-0.8);
-        } else {
-            verticalArm1.setPower(0);
-            verticalArm2.setPower(0);
-        }
-
-        if (currentWristEncoder + 5 <= w){
-            wrist1.setPower(1);
-            wrist2.setPower(1);
-        } else if (currentWristEncoder - 5 >= w) {
-            wrist1.setPower(-1);
-            wrist2.setPower(-1);
-        } else {
-            wrist1.setPower(0);
-            wrist2.setPower(0);
-        }
-
-        if (currentArmEncoder - 5 >= a && currentArmEncoder + 5 <= a && currentWristEncoder - 5 >= w && currentWristEncoder + 5 <= w){
-            step++;
-        }
     }
 }

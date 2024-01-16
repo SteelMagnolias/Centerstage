@@ -3,9 +3,11 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
+
+
 
 @Autonomous(name = "OdoWings", group="Iterative OpMode")
 public class OdoWings extends OpMode {
@@ -15,27 +17,27 @@ public class OdoWings extends OpMode {
     private DcMotor rightFront;
     private DcMotor leftBack;
     private DcMotor rightBack;
-    private DcMotor verticalArm1;
-    private DcMotor verticalArm2;
 
-    //declare servos
-    private CRServo intakeClawRight;
-    private CRServo intakeClawLeft;
-    private CRServo wrist1;
-    private CRServo wrist2;
+    private DcMotor wrist; // core hex on wrist
 
     private DcMotor leftEncoder;
     private DcMotor rightEncoder;
     private DcMotor backEncoder;
-    private DcMotor armEncoder;
-    private DcMotor wristEncoder;
 
+    private DcMotor verticalArm;
+    private DcMotor verticalArm2;
+
+
+
+    // servos
+    private CRServo intakeClawRight;
+    private CRServo intakeClawLeft;
 
 
     // bot constraints:
-    double trackWidth = 20.37; //(cm)!
-    double yOffSet = -12.7; //(cm)!
-    double wheelRadius = 4.8; // centimeters!
+    double trackWidth = 19.2; //(cm)!
+    double yOffSet = -18.85; //(cm)!
+    double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
@@ -50,126 +52,109 @@ public class OdoWings extends OpMode {
     // auton step / action!
     int step = 0;
 
-    // make a timer
-    ElapsedTime timer = new ElapsedTime();
-
+    int logCount = 0;
 
     @Override
     public void init() {
-        // init!
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
-        verticalArm1 = hardwareMap.get(DcMotor.class, "verticalArm");
-        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
-        intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
-        intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
-        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist = hardwareMap.get(DcMotor.class, "wrist");
+
+        leftBack.setDirection(DcMotor.Direction.REVERSE );
+
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalArm1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+
+        verticalArm.setDirection(DcMotor.Direction.REVERSE);
+        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
-        leftEncoder = leftFront;
-        rightEncoder = rightFront;
-        backEncoder = leftBack;
-        armEncoder = verticalArm1;
-        wristEncoder = verticalArm2;
-
-        leftEncoder = leftFront;
-        rightEncoder = rightFront;
-        backEncoder = leftBack;
+        // fix encoders resets - wrong motors reset might be issue!
+        leftEncoder = rightFront;
+        rightEncoder = wrist;
+        backEncoder = rightBack;
 
         prevLeftEncoder = leftEncoder.getCurrentPosition();
         prevRightEncoder = rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
-
     }
 
 
     @Override
     public void loop() {
         // repeating code - contains state machine!
+
         runOdometry();
 
-        switch(step) {
-            case 0: // strafe over to D2
-                strafe(-0.3);
-                if (pose[0] >= 129.54) {
-                    strafe(0);
-                    step++;
-                }
-                break;
-            case 1: // forward through gate to D5
-                drive(-0.3);
-                if (pose[1] <= -178) {
-                    drive(0);
-                    step++;
-                }
-                break;
-            case 2: // strafe to E5
-                strafe(0.3);
-                if (pose[0] <= 68.78) {
-                    strafe(0);
-                    step++;
-                }
-                break;
-            case 3: // forward a little to drop
-                drive(-0.3);
-                if (pose[1] <= -208.28) {
-                    drive(0);
-                    step++;
-                }
-                break;
-            case 4: // do the drop
-                // raise arm
-                /*
-                 arm(4096, 4096);
-                // intake drop both
-                intakeClawLeft.setPower(1);
-                intakeClawRight.setPower(1);
-                setTimer(3);
-                // stop moving intake
-                 arm(0,0);
-                */
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
 
-                step++;
-                break;
-            case 5: // backward from drop
-                drive(0.3);
-                if (pose[1] >= -178) {
+
+        switch(step) {
+            case 0: // drive forward, away from wall
+                drive(-0.3);
+                if (pose[1] <= -20) {
                     drive(0);
                     step++;
                 }
-            case 6: // strafe to D5
-                strafe(-0.3);
-                if(pose[0] <=  129.4) {
+
+                //setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
+                //drivePID(0); // keep angle at 0 (moving forward in straight line)
+                break;
+            case 1: // turn 180 degrees to face spike marks
+                rotate(-0.3);
+                if (pose[2] >= 180) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 2:
+                drive(-0.0);
+                if (pose[0] <= 0) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 3:
+                strafe(0);
+                if(pose[1] <= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
-            case 7: // forward to D6
-                drive(-0.3);
-                if (pose[1] >= 243.84) {
-                    drive(0);
+            case 4:
+                rotate(-0.0);
+                if (pose[2] >= (Math.PI / 6)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 5:
+                rotate(0.0);
+                if (pose[2] <=(Math.PI / -6)) {
+                    rotate(0);
                     step++;
                 }
                 break;
             default: // do nothing!
                 drive(0);
-                strafe(0);
-                rotate(0);
                 stop();
         }
 
@@ -184,14 +169,14 @@ public class OdoWings extends OpMode {
 
     @Override
     public void stop() {
+        // stops code
     }
-
 
     public void runOdometry() {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
         double rawBackEncoder = -backEncoder.getCurrentPosition();
 
@@ -199,9 +184,9 @@ public class OdoWings extends OpMode {
         telemetry.addData("Raw Right", rawRightEncoder);
         telemetry.addData("Raw Back", rawBackEncoder);
 
-        double rawChangeLeft = (((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference);
-        double rawChangeRight = (((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference);
-        double rawChangeBack = (((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference);
+        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference;
+        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference;
+        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference;
 
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Right Change", rawChangeRight);
@@ -227,17 +212,35 @@ public class OdoWings extends OpMode {
         double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
         telemetry.addData("yChange", yChange);
 
-        pose[0] += xChange;
-        pose[1] += yChange;
+        pose[0] += yChange;
+        pose[1] += xChange;
         pose[2] += deltaTheta;
 
         prevLeftEncoder = rawLeftEncoder;
         prevRightEncoder = rawRightEncoder;
         prevBackEncoder = rawBackEncoder;
+
         telemetry.addData("prevLeftEncoder", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
 
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawLeftEncoder: " + rawLeftEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawRightEncoder: " + rawRightEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    rawBackEncoder: " + rawBackEncoder);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[0]: " + pose[0]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[1]: " + pose[1]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    pose[2]: " + pose[2]);
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    ");
+
+        logCount++;
+        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
     }
 
     public void drive(double pow) {
@@ -265,42 +268,6 @@ public class OdoWings extends OpMode {
         rightBack.setPower(pow);
     }
 
-    public void arm(int a, int w){
-        double currentArmEncoder = armEncoder.getCurrentPosition();
-        double currentWristEncoder = wristEncoder.getCurrentPosition();
-        if (currentArmEncoder + 5 <= a){
-            verticalArm1.setPower(0.8);
-            verticalArm2.setPower(0.8);
-        } else if (currentArmEncoder - 5 >= a){
-            verticalArm1.setPower(-0.8);
-            verticalArm2.setPower(-0.8);
-        } else {
-            verticalArm1.setPower(0);
-            verticalArm2.setPower(0);
-        }
 
-        if (currentWristEncoder + 5 <= w){
-            wrist1.setPower(1);
-            wrist2.setPower(1);
-        } else if (currentWristEncoder - 5 >= w) {
-            wrist1.setPower(-1);
-            wrist2.setPower(-1);
-        } else {
-            wrist1.setPower(0);
-            wrist2.setPower(0);
-        }
 
-        if (currentArmEncoder - 5 >= a && currentArmEncoder + 5 <= a && currentWristEncoder - 5 >= w && currentWristEncoder + 5 <= w){
-            step++;
-        }
-    }
-
-    public void setTimer(double duration) {
-        timer.reset();
-        while (true) { // this is bad practice, don't do it in any other sense
-            if (timer.seconds() >= duration) {
-                break;
-            }
-        }
-    }
 }
