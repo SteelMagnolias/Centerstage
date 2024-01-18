@@ -206,8 +206,8 @@ public class OdoWings extends OpMode {
 
         /*
         NOTICE - yChange and xChange (below) are swapped from GM0
-        This is because in GM0, they set theta as 0 on the x-axis (like the unit circle)
-        in our code, we set theta as 0 on the y-axis (because if you were saying what angle the robot was at, you'd go off the y-axis of the robot, let's be real here)
+        This is because in GM0, they swap the x and y axis.
+        I wanted it to be like a normal graph :)
          */
 
         //find change in y!
