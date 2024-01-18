@@ -1,28 +1,24 @@
 // group of code/location
 package org.firstinspires.ftc.teamcode.Autonomous;
 
-
 //import important files from sdk
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionPortal.CameraState;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
-
 
 import java.util.List;
 import android.util.Size;
 
-
 //define class and name for driver hub
 @Autonomous(name = "CameraTest", group="Iterative OpMode")
 public class CameraTest extends LinearOpMode {
-
 
     //define camera
     private WebcamName camera1;
@@ -44,7 +40,6 @@ public class CameraTest extends LinearOpMode {
     //spike marker variable
     int spikeMark=3;
 
-
     //alliance color variable 1 red - 1 blue
     int alliance=1;
     int cam=1;
@@ -62,12 +57,7 @@ public class CameraTest extends LinearOpMode {
         while(!opModeIsActive() && !isStopRequested()) {
             //if tfod has been initialized
             if (tfod != null) {
-                if(cam == 1) {
-                    visionPortal.setActiveCamera(camera1);
-                }
-                else if ( cam == 2){
-                    visionPortal.setActiveCamera(camera2);
-                }
+                switchCameras();
                 //see function
                 tfodtelemetry();
                 //see function
@@ -78,20 +68,15 @@ public class CameraTest extends LinearOpMode {
                 //say that it doesn't see anything and spike marker is default 3
                 telemetry.addLine("Didn't load properly Spike Marker 3");
             }
+            sleep(20);
         }
-
 
         //wait for start
         waitForStart();
-
-
     }
-
 
     //function to initialize tensorflow and vision portal with preferred settings
     private void initTfod() {
-
-
         // start building custom tfod
         TfodProcessor.Builder builder = new TfodProcessor.Builder();
         //custom training model file import
@@ -108,7 +93,6 @@ public class CameraTest extends LinearOpMode {
         builder.setModelAspectRatio(16.0 / 9.0);
         //make custom tfod
         tfod = builder.build();
-
 
         //start building custom vision portal
         VisionPortal.Builder builder2 = new VisionPortal.Builder();
@@ -129,23 +113,18 @@ public class CameraTest extends LinearOpMode {
         builder2.addProcessor(tfod);
         //build vision portal
         visionPortal = builder2.build();
-
-
         //must be at least 75% confident to display data
         tfod.setMinResultConfidence(0.75f);
 
-
         //processor is on
         visionPortal.setProcessorEnabled(tfod, true);
-        visionPortal.setActiveCamera(camera1);
+        telemetry.addData("camera state", visionPortal.getCameraState());
     }
-
 
     //function for tfod telemetry
     private void tfodtelemetry() {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
-
 
         for (Recognition recognition : currentRecognitions) {
             //continents
@@ -154,13 +133,11 @@ public class CameraTest extends LinearOpMode {
             //average y coordinates
             y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
 
-
             telemetry.addData(""," ");
             telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
             telemetry.addData("- Position", "%.0f / %.0f", x, y);
             telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
             telemetry.update();
-
 
             //is the item is a red heart
             if (recognition.getLabel() .equals("heartRed")) {
@@ -176,48 +153,53 @@ public class CameraTest extends LinearOpMode {
                 //add blue alliance to telemetry
                 telemetry.addLine("blue alliance (-1)");
             }
-
-
         }
     }
 
-
     //function for setting the spike marker
     private void setSpikeMark(){
-
-
         // determine spike mark
         //if x is left of set value
         if (cam == 1 && x < 300){
                 spikeMark = 1;
                 telemetry.addLine("Spike Mark Left-1");
-                cam =1;
-        }
-        else if (cam == 1 && x > 299){
-            cam = 2;
         }
         //if x is in between set values
         else if (cam == 2) {
             if (x > 300){
                 spikeMark =2;
                 telemetry.addLine("Spike Mark Middle-2");
-                cam = 1;
             }
             else if (x < 299){
                 spikeMark = 3;
                 telemetry.addLine("Spike Mark Right-3");
-                cam = 1;
             }
         }
         //if nothing is seen
         else{
             //set right
-            spikeMark = 3;
+            spikeMark = 0;
             //say set right but also default
-            telemetry.addLine("Spike Mark Right(Default)-3");
+            telemetry.addLine("Spike Mark None-0");
         }
-
-
-        telemetry.update();
+    }
+    private void switchCameras(){
+       if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+           if (visionPortal.getActiveCamera().equals((camera1.isWebcam()))){
+               cam = 1;
+           }
+           else {
+               cam = 2;
+           }
+           if (cam == 2 && spikeMark == 0) {
+              visionPortal.setActiveCamera(camera1);
+           } else if (cam == 1 && spikeMark == 0) {
+               visionPortal.setActiveCamera(camera2);
+           }else if (cam == 1){
+               visionPortal.setActiveCamera(camera1);
+           }else{
+               visionPortal.setActiveCamera(camera2);
+           }
+       }
     }
 }
