@@ -204,16 +204,22 @@ public class OdometryTest extends OpMode {
         double xPerp = rawChangeBack - (yOffSet * deltaTheta);
         telemetry.addData("xPerp", xPerp);
 
-        //find change in x!
-        double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
-        telemetry.addData("xChange", xChange);
+        /*
+        NOTICE - yChange and xChange (below) are swapped from GM0
+        This is because in GM0, they set theta as 0 on the x-axis (like the unit circle)
+        in our code, we set theta as 0 on the y-axis (because if you were saying what angle the robot was at, you'd go off the y-axis of the robot, let's be real here)
+         */
 
-        // find changein y!
-        double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
-        telemetry.addData("yChange", yChange);
+        //find change in y!
+        double yChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
+        telemetry.addData("xChange", yChange);
 
-        pose[0] += yChange;
-        pose[1] += xChange;
+        // find changein x!
+        double xChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
+        telemetry.addData("yChange", xChange);
+
+        pose[0] += xChange;
+        pose[1] += yChange;
         pose[2] += deltaTheta;
 
         prevLeftEncoder = rawLeftEncoder;
