@@ -60,15 +60,13 @@ public class CameraTest extends LinearOpMode {
                 switchCameras();
                 //see function
                 tfodtelemetry();
-                //see function
-                setSpikeMark();
             }
             // if tfod hasn't been initialized
             else {
                 //say that it doesn't see anything and spike marker is default 3
                 telemetry.addLine("Didn't load properly Spike Marker 3");
             }
-            sleep(20);
+            sleep(100);
         }
 
         //wait for start
@@ -125,34 +123,44 @@ public class CameraTest extends LinearOpMode {
     private void tfodtelemetry() {
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
+        double numObDetected = currentRecognitions.size();
 
-        for (Recognition recognition : currentRecognitions) {
-            //continents
-            //average x coordinates
-            x = (recognition.getLeft() + recognition.getRight()) / 2 ;
-            //average y coordinates
-            y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+        if (numObDetected < 1 && cam == 1) {
+            cam = 2;
+        }
+        else if (numObDetected < 1 && cam == 2){
+            cam = 1;
+        }
+        else {
+            for (Recognition recognition : currentRecognitions) {
+                //continents
+                //average x coordinates
+                x = (recognition.getLeft() + recognition.getRight()) / 2;
+                //average y coordinates
+                y = (recognition.getTop() + recognition.getBottom()) / 2;
 
-            telemetry.addData(""," ");
-            telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
-            telemetry.addData("- Position", "%.0f / %.0f", x, y);
-            telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
-            telemetry.update();
+                telemetry.addData("", " ");
+                telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
+                telemetry.addData("- Position", "%.0f / %.0f", x, y);
+                telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
+                telemetry.update();
 
-            //is the item is a red heart
-            if (recognition.getLabel() .equals("heartRed")) {
-                //set alliance 1 (red)
-                alliance = 1;
-                //add red alliance to telemetry
-                telemetry.addLine("red alliance (1)");
+                //is the item is a red heart
+                if (recognition.getLabel().equals("heartRed")) {
+                    //set alliance 1 (red)
+                    alliance = 1;
+                    //add red alliance to telemetry
+                    telemetry.addLine("red alliance (1)");
+                }
+                //is the item is a blue heart
+                else if (recognition.getLabel().equals("heartBlue")) {
+                    //set alliance 1 (red)
+                    alliance = -1;
+                    //add blue alliance to telemetry
+                    telemetry.addLine("blue alliance (-1)");
+                }
             }
-            //is the item is a blue heart
-            else if (recognition.getLabel() .equals("heartBlue")) {
-                //set alliance 1 (red)
-                alliance = -1;
-                //add blue alliance to telemetry
-                telemetry.addLine("blue alliance (-1)");
-            }
+            setSpikeMark();
         }
     }
 
@@ -185,21 +193,12 @@ public class CameraTest extends LinearOpMode {
     }
     private void switchCameras(){
        if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
-           if (visionPortal.getActiveCamera().equals((camera1.isWebcam()))){
-               cam = 1;
-           }
-           else {
-               cam = 2;
-           }
-           if (cam == 2 && spikeMark == 0) {
+          if (cam == 1 && visionPortal.getActiveCamera().equals(camera2)){
               visionPortal.setActiveCamera(camera1);
-           } else if (cam == 1 && spikeMark == 0) {
-               visionPortal.setActiveCamera(camera2);
-           }else if (cam == 1){
-               visionPortal.setActiveCamera(camera1);
-           }else{
-               visionPortal.setActiveCamera(camera2);
-           }
+          }
+          else if (cam == 2 && visionPortal.getActiveCamera().equals(camera1)){
+              visionPortal.setActiveCamera(camera2);
+          }
        }
     }
 }
