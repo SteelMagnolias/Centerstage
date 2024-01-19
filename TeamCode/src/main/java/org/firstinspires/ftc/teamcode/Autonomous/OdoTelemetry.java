@@ -35,8 +35,8 @@ public class OdoTelemetry extends OpMode {
 
 
     // bot constraints:
-    double trackWidth = 20.32; //(cm)!
-    double yOffSet = -19.0; //(cm)!
+    double trackWidth = 20.3; //(cm)!
+    double yOffSet = -14.5; //(cm)!
     double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
@@ -92,22 +92,34 @@ public class OdoTelemetry extends OpMode {
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
-        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
         verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
         leftEncoder = rightFront;
-        rightEncoder = wrist;
+        rightEncoder = verticalArm2;
         backEncoder = rightBack;
 
-        prevLeftEncoder = leftEncoder.getCurrentPosition();
-        prevRightEncoder = rightEncoder.getCurrentPosition();
+        prevLeftEncoder = -leftEncoder.getCurrentPosition();
+        prevRightEncoder = -rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
     }
 
@@ -120,7 +132,7 @@ public class OdoTelemetry extends OpMode {
 
         telemetry.addData("Pose0", pose[0]);
         telemetry.addData("Pose1", pose[1]);
-        telemetry.addData("Pose2", pose[2]);
+        telemetry.addData("Pose2", Math.toDegrees(pose[2]));
         telemetry.addData("Case", step);
 
         telemetry.update();
@@ -137,16 +149,16 @@ public class OdoTelemetry extends OpMode {
 
         // distance wheel turns in cm!
         double rawLeftEncoder = -leftEncoder.getCurrentPosition();
-        double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = backEncoder.getCurrentPosition();
+        double rawRightEncoder = -rightEncoder.getCurrentPosition();
+        double rawBackEncoder = -backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
         telemetry.addData("Raw Back", rawBackEncoder);
 
-        double rawChangeLeft = rawLeftEncoder - prevLeftEncoder;
-        double rawChangeRight = rawRightEncoder - prevRightEncoder;
-        double rawChangeBack = rawBackEncoder - prevBackEncoder;
+        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference;
+        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference;
+        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference;
 
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Right Change", rawChangeRight);
@@ -164,13 +176,19 @@ public class OdoTelemetry extends OpMode {
         double xPerp = rawChangeBack - (yOffSet * deltaTheta);
         telemetry.addData("xPerp", xPerp);
 
-        //find change in x!
-        double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
-        telemetry.addData("xChange", xChange);
+        /*
+        NOTICE - yChange and xChange (below) are swapped from GM0
+        This is because in GM0, they swap the x and y axis.
+        I wanted it to be like a normal graph :)
+         */
 
-        // find changein y!
-        double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
-        telemetry.addData("yChange", yChange);
+        //find change in y!
+        double yChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
+        telemetry.addData("xChange", yChange);
+
+        // find changein x!
+        double xChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
+        telemetry.addData("yChange", xChange);
 
         pose[0] += xChange;
         pose[1] += yChange;

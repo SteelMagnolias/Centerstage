@@ -35,8 +35,8 @@ public class OdoWings extends OpMode {
 
 
     // bot constraints:
-    double trackWidth = 19.2; //(cm)!
-    double yOffSet = -18.85; //(cm)!
+    double trackWidth = 20.3; //(cm)!
+    double yOffSet = -14.5; //(cm)!
     double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
@@ -65,18 +65,9 @@ public class OdoWings extends OpMode {
 
         leftBack.setDirection(DcMotor.Direction.REVERSE );
 
-        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
-        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
         verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         verticalArm.setDirection(DcMotor.Direction.REVERSE);
@@ -86,13 +77,24 @@ public class OdoWings extends OpMode {
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         // fix encoders resets - wrong motors reset might be issue!
         leftEncoder = rightFront;
-        rightEncoder = wrist;
+        rightEncoder = verticalArm2;
         backEncoder = rightBack;
 
-        prevLeftEncoder = leftEncoder.getCurrentPosition();
-        prevRightEncoder = rightEncoder.getCurrentPosition();
+
+        prevLeftEncoder = -leftEncoder.getCurrentPosition();
+        prevRightEncoder = -rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
     }
 
@@ -120,7 +122,7 @@ public class OdoWings extends OpMode {
                 break;
             case 1: // turn 180 degrees to face spike marks
                 rotate(-0.3);
-                if (pose[2] >= 180) {
+                if (pose[2] >= Math.toRadians(177)) {
                     rotate(0);
                     step++;
                 }
@@ -160,7 +162,7 @@ public class OdoWings extends OpMode {
 
         telemetry.addData("Pose0", pose[0]);
         telemetry.addData("Pose1", pose[1]);
-        telemetry.addData("Pose2", pose[2]);
+        telemetry.addData("Pose2", Math.toDegrees(pose[2]));
         telemetry.addData("Case", step);
 
         telemetry.update();
@@ -177,7 +179,7 @@ public class OdoWings extends OpMode {
 
         // distance wheel turns in cm!
         double rawLeftEncoder = -leftEncoder.getCurrentPosition();
-        double rawRightEncoder = rightEncoder.getCurrentPosition();
+        double rawRightEncoder = -rightEncoder.getCurrentPosition();
         double rawBackEncoder = -backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
