@@ -43,10 +43,13 @@ public class Drive extends OpMode {
     // PID
     double integralSum = 0;
     double integralSum2 = 0;
+    double integralSum3 = 0;
     double lasterror = 0;
     double lasterror2 = 0;
+    double lasterror3 = 0;
     ElapsedTime timer = new ElapsedTime();
     ElapsedTime timer2 = new ElapsedTime();
+    ElapsedTime timer3 = new ElapsedTime();
 
     // PID Arm
     double KpArm = 0;
@@ -60,14 +63,19 @@ public class Drive extends OpMode {
     double KiWristDown = 0;
     double KdWristDown = 0;
 
+    double KpWristTuck = 0;
+    double KiWristTuck = 0;
+    double KdWristTuck = 0;
+
     double KpWristUp = 1.3;
     double KiWristUp = 0;
     double KdWristUp = 0.2;
     // volts
     double referenceWristDown = 0.07;
     double referenceWristUp = 2.9;
-    double referenceWristCurled = 1.2;
+    double referenceWristTuck = 1.2;
 
+    // volts
 
     // cameras
 
@@ -83,6 +91,7 @@ public class Drive extends OpMode {
         ARM_DOWN,
         EMERGENCY,
         MANUAL,
+        ARM_TUCK,
     }
 
     ArmState armPos = ArmState.MANUAL;
@@ -115,6 +124,7 @@ public class Drive extends OpMode {
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
         wrist = hardwareMap.get(DcMotor.class, "wrist");
+        wrist.setDirection(DcMotor.Direction.REVERSE);
 
         //sensors
         potentiometer = hardwareMap.get(AnalogInput.class, "potentiometer");
@@ -293,7 +303,7 @@ public class Drive extends OpMode {
 
 
         // Below: precision (slower) movement
-        pow *= 0.57;
+        pow *= 0.3;
         if (buttonUp1) {
             // slowly moves forwards
             leftFront.setPower(pow);
@@ -358,8 +368,11 @@ public class Drive extends OpMode {
                     // STOP!
                     armPos = ArmState.EMERGENCY;
                 }
-
-                if (back2) {
+                else if (b2) {
+                    // TUCK!
+                    armPos = ArmState.ARM_TUCK;
+                }
+                else if (back2) {
                     // change to manual mode
                     armPos = ArmState.MANUAL;
                     verticalArm.setPower(0);
@@ -379,6 +392,32 @@ public class Drive extends OpMode {
                     // move to down position
                     armPos = ArmState.ARM_DOWN;
                 }
+                else if (b2) {
+                    // move to tuck position
+                    armPos = ArmState.ARM_TUCK;
+                }
+                else if (x2) {
+                    armPos = ArmState.EMERGENCY;
+                }
+                else if (back2) {
+                    // change to manual mode
+                    armPos = ArmState.MANUAL;
+                    verticalArm.setPower(0);
+                    verticalArm2.setPower(0);
+                    wrist.setPower(0);
+                }
+                break;
+            case ARM_TUCK:
+                wrist.setPower(PIDControlWristTuck(KpWristTuck, KiWristTuck, KdWristTuck, referenceWristTuck, potentiometerVoltage));
+
+                if (a2) {
+                    // move to down position
+                    armPos = ArmState.ARM_DOWN;
+                }
+                else if (y2) {
+                    // move to tuck position
+                    armPos = ArmState.ARM_UP;
+                }
                 else if (x2) {
                     armPos = ArmState.EMERGENCY;
                 }
@@ -397,11 +436,15 @@ public class Drive extends OpMode {
                 if (a2) {
                     armPos = ArmState.ARM_DOWN;
                 }
-                if (y2) {
+                else if (y2) {
                     armPos = ArmState.ARM_UP;
                 }
-                if (back2) {
+                else if (back2) {
                     armPos = ArmState.MANUAL;
+                }
+                else if (b2) {
+                    // TUCK!
+                    armPos = ArmState.ARM_TUCK;
                 }
                 break;
             case MANUAL:
@@ -421,25 +464,34 @@ public class Drive extends OpMode {
                     // move to down position
                     armPos = ArmState.ARM_DOWN;
                 }
-                if (x2) {
+                else if (x2) {
                     armPos = ArmState.EMERGENCY;
                 }
-                if (y2) {
+                else if (y2) {
                     // move arm up
                     armPos = ArmState.ARM_UP;
                 }
+                else if (b2) {
+                    // TUCK!
+                    armPos = ArmState.ARM_TUCK;
+                }
 
+                /*
                 if (b2) {
                     // reset encoders
                     resetArmEncoders();
-                }
+                }*/
                 break;
         }
 
-        // arm joystick
+        // arm joystick - look into why etpark does not work
         if (Math.abs(lefty2) > 0.1) {
             verticalArm.setPower(lefty2 * 0.3);
             verticalArm2.setPower(lefty2 * 0.3);
+        }
+        else if (buttonup2) {
+            verticalArm.setPower(-0.7);
+            verticalArm2.setPower(-0.7);
         }
         else {
             verticalArm.setPower(0);
@@ -503,6 +555,20 @@ public class Drive extends OpMode {
         lasterror2 = error;
 
         timer2.reset();
+
+        double output = (error * Kp) + (derivative * Kd) + (integralSum2 *Ki);
+        telemetry.addData("PIDOutPutArm", output);
+        return output;
+
+    }
+
+    public double PIDControlWristTuck(double Kp, double Ki, double Kd, double reference, double state){
+        double error = reference - state;
+        integralSum3 += error * timer3.seconds();
+        double derivative = (error - lasterror3 ) / timer3.seconds();
+        lasterror3 = error;
+
+        timer3.reset();
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum2 *Ki);
         telemetry.addData("PIDOutPutArm", output);

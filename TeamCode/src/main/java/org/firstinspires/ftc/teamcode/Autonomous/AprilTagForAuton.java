@@ -29,7 +29,8 @@ import java.util.concurrent.TimeUnit;
 @Autonomous(name = "AprilTagForAuton" ,  group="Linear OpMode")
 public class AprilTagForAuton extends LinearOpMode {
     // how far from tag we want to be
-    final double desiredDistance = 6;
+    final double desiredDistance = 5;
+    final double xOffSet = 5.75;
     //forward speed control
     final double driveGain = 0.02;
     //strafe speed control
@@ -37,11 +38,11 @@ public class AprilTagForAuton extends LinearOpMode {
     // turn speed control
     final double turnGain = 0.01;
     //max drive speed
-    final double maxDrive = 0.1875;
+    final double maxDrive = 0.09375;
     //max strafe speed
-    final double maxStrafe = 0.1875;
+    final double maxStrafe = 0.09375;
     //max turn speed
-    final double maxTurn = 0.1125;
+    final double maxTurn = 0.05625;
 
     double rangeError = -2;
     double headingError = -2;
@@ -99,7 +100,7 @@ public class AprilTagForAuton extends LinearOpMode {
         //drive through gate/to middle of backstage side
         //turn too far abiut 45 degrees face the corner of the tile
 
-        while (rangeError < -1 || rangeError > 1 || headingError < -1 || headingError > 1 || yawError < -1 || yawError > 1) {
+        while (rangeError < -2.25 || rangeError > 2.25 || yawError < -1.75 || yawError > 1.75) {
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.metadata != null) {
@@ -122,7 +123,7 @@ public class AprilTagForAuton extends LinearOpMode {
                 rightFront.setPower(0);
             } else if (targetFound = true) {
                 rangeError = (desiredTag.ftcPose.range - desiredDistance);
-                headingError = desiredTag.ftcPose.bearing;
+                headingError = (desiredTag.ftcPose.bearing - xOffSet);
                 yawError = desiredTag.ftcPose.yaw;
 
                 telemetry.addData("range error", rangeError);
@@ -214,7 +215,7 @@ public class AprilTagForAuton extends LinearOpMode {
         //start creating custom vision portal
         VisionPortal.Builder builder2 = new VisionPortal.Builder();
         //use webcam 1
-        builder2.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        builder2.setCamera(hardwareMap.get(WebcamName.class, "Webcam 2"));
         //set camera resolution
         builder2.setCameraResolution(new Size(640, 480));
         //allow to be seem on driver hub

@@ -66,7 +66,7 @@ public class CameraTest extends LinearOpMode {
                 //say that it doesn't see anything and spike marker is default 3
                 telemetry.addLine("Didn't load properly Spike Marker 3");
             }
-            sleep(100);
+            sleep(1000);
         }
 
         //wait for start
@@ -121,10 +121,18 @@ public class CameraTest extends LinearOpMode {
 
     //function for tfod telemetry
     private void tfodtelemetry() {
+        telemetry.addData("camera #", visionPortal.getActiveCamera());
+        if (visionPortal.getActiveCamera().equals(camera1)){
+            telemetry.addLine("cam = 1");
+        }
+        else if (visionPortal.getActiveCamera().equals(camera2)){
+            telemetry.addLine("cam = 2");
+        }
+        telemetry.addData("SpikeMark", spikeMark);
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
         double numObDetected = currentRecognitions.size();
-
+        sleep(1500);
         if (numObDetected < 1 && cam == 1) {
             cam = 2;
         }
@@ -143,7 +151,6 @@ public class CameraTest extends LinearOpMode {
                 telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
                 telemetry.addData("- Position", "%.0f / %.0f", x, y);
                 telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
-                telemetry.update();
 
                 //is the item is a red heart
                 if (recognition.getLabel().equals("heartRed")) {
@@ -162,42 +169,43 @@ public class CameraTest extends LinearOpMode {
             }
             setSpikeMark();
         }
+        telemetry.update();
     }
 
     //function for setting the spike marker
     private void setSpikeMark(){
         // determine spike mark
         //if x is left of set value
-        if (cam == 1 && x < 300){
+        if (cam == 1 ) {
+            if (x < 300) {
                 spikeMark = 1;
                 telemetry.addLine("Spike Mark Left-1");
+            } else if (x > 299) {
+                spikeMark = 2;
+                telemetry.addLine("Spike Mark Middle (Left)-2");
+            }
         }
         //if x is in between set values
         else if (cam == 2) {
-            if (x > 300){
+            if (x < 300){
                 spikeMark =2;
-                telemetry.addLine("Spike Mark Middle-2");
+                telemetry.addLine("Spike Mark Middle (Right)-2");
             }
-            else if (x < 299){
+            else if (x > 299){
                 spikeMark = 3;
                 telemetry.addLine("Spike Mark Right-3");
             }
-        }
-        //if nothing is seen
-        else{
-            //set right
-            spikeMark = 0;
-            //say set right but also default
-            telemetry.addLine("Spike Mark None-0");
         }
     }
     private void switchCameras(){
        if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
           if (cam == 1 && visionPortal.getActiveCamera().equals(camera2)){
               visionPortal.setActiveCamera(camera1);
+              cam = 1;
           }
           else if (cam == 2 && visionPortal.getActiveCamera().equals(camera1)){
               visionPortal.setActiveCamera(camera2);
+              cam = 2;
           }
        }
     }
