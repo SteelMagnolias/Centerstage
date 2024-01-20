@@ -118,9 +118,9 @@ public class OdoTelemetry extends OpMode {
         rightEncoder = verticalArm2;
         backEncoder = rightBack;
 
-        prevLeftEncoder = -leftEncoder.getCurrentPosition();
-        prevRightEncoder = -rightEncoder.getCurrentPosition();
-        prevBackEncoder = -backEncoder.getCurrentPosition();
+        prevLeftEncoder = leftEncoder.getCurrentPosition();
+        prevRightEncoder = rightEncoder.getCurrentPosition();
+        prevBackEncoder = backEncoder.getCurrentPosition();
     }
 
 
@@ -148,9 +148,9 @@ public class OdoTelemetry extends OpMode {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
-        double rawRightEncoder = -rightEncoder.getCurrentPosition();
-        double rawBackEncoder = -backEncoder.getCurrentPosition();
+        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawRightEncoder = rightEncoder.getCurrentPosition();
+        double rawBackEncoder = backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);

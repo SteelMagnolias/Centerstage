@@ -33,10 +33,12 @@ public class OdoWings extends OpMode {
     private CRServo intakeClawRight;
     private CRServo intakeClawLeft;
 
+    // sensors
+    private TouchSensor locationSwitch;
 
     // bot constraints:
     double trackWidth = 20.3; //(cm)!
-    double yOffSet = -14.5; //(cm)!
+    double yOffSet = -21; //(cm)!
     double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
@@ -53,6 +55,10 @@ public class OdoWings extends OpMode {
     int step = 0;
 
     int logCount = 0;
+
+    int spikeMark = 2;
+
+    int location;
 
     @Override
     public void init() {
@@ -73,7 +79,7 @@ public class OdoWings extends OpMode {
         verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setDirection(DcMotor.Direction.REVERSE);
 
-
+        locationSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
@@ -93,9 +99,13 @@ public class OdoWings extends OpMode {
         backEncoder = rightBack;
 
 
-        prevLeftEncoder = -leftEncoder.getCurrentPosition();
-        prevRightEncoder = -rightEncoder.getCurrentPosition();
-        prevBackEncoder = -backEncoder.getCurrentPosition();
+        prevLeftEncoder = leftEncoder.getCurrentPosition();
+        prevRightEncoder = rightEncoder.getCurrentPosition();
+        prevBackEncoder = backEncoder.getCurrentPosition();
+
+        if (locationSwitch.isPressed()){
+            location = -1;
+        }
     }
 
 
@@ -112,47 +122,184 @@ public class OdoWings extends OpMode {
         switch(step) {
             case 0: // drive forward, away from wall
                 drive(-0.3);
-                if (pose[1] <= -20) {
+                if (pose[1] >= 20) {
                     drive(0);
-                    step++;
+                    if (spikeMark == 1) {
+                        step++;
+                    }
+                    else if (spikeMark == 2) {
+                        step+=5;
+                    }
+                    else {
+                        step+=10;
+                    }
                 }
-
-                //setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
-                //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
-            case 1: // turn 180 degrees to face spike marks
-                rotate(-0.3);
-                if (pose[2] >= Math.toRadians(177)) {
+            case 1: // turn 270 degree to face SM 1
+                // spike mark 1
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(270)) {
                     rotate(0);
                     step++;
                 }
                 break;
-            case 2:
-                drive(-0.0);
-                if (pose[0] <= 0) {
+            case 2: // move to SM 1
+                strafe(0.3);
+                if (pose[1] >= (67)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 3: //unhook wrist, drop pixel, rehook wrist
+                //do not odo things
+                step++;
+                break;
+            case 4: // strafe back to not hit pixel
+                strafe(-0.3);
+                if (pose[1] <= (27)) {
+                    rotate(0);
+                    step+= 11;
+                }
+                break;
+            case 5: // rotate to face SM2
+                // spike mark 2
+                rotate(0.3);
+                if (pose[2] >=(Math.toRadians(170))) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 6: // drive to reach SM2
+                drive(0.3);
+                if (pose[1] >= (55)){
                     drive(0);
                     step++;
                 }
                 break;
-            case 3:
-                strafe(0);
-                if(pose[1] <= 0) {
+            case 7://unhook wrist, drop pixel, rehook wrist
+                //do not odo things
+                step++;
+                break;
+            case 8: // back away from pixel
+                drive(-0.3);
+                if (pose[1] <= (27)) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 9: // rotate to face o=correct direction
+                rotate(0.3);
+                if (pose[2] >= (Math.toRadians(260))){
+                    rotate(0);
+                    step=15;
+                }
+                break;
+            case 10: //rotate to face SM3
+                //spike mark 3
+                rotate(0.3);
+                if (pose[2] >= Math.toRadians(90)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 11: // strafe to line up with SM3
+                strafe(-0.3);
+                if (pose[1] >= (64)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 12://unhook wrist, drop pixel, rehook wrist
+                //do not odo things
+                step++;
+                break;
+            case 13: // move back to not hit pixel
+                strafe(0.3);
+                if (pose[1] <= (27)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 14: // turn to face correct direction
+                rotate(0.3);
+                if (pose[2] <=(Math.toRadians(270))) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 15: // move back to not hit pixel
+                //wings
+                if (location == -1){
+                    step+=9;
+                    break;
+                }
+                drive(0.3);
+                if (pose[0] <= (-25)){
+                    drive (0);
+                    step++;
+                }
+                break;
+            case 16: // strafe to line up with stage door
+                strafe(-0.3);
+                if(pose[1] <= (-40)){
                     strafe(0);
                     step++;
                 }
                 break;
-            case 4:
-                rotate(-0.0);
-                if (pose[2] >= (Math.PI / 6)) {
+            case 17: // fix rotation
+                rotate(0.3);
+                if (pose[2] >= 200) {
                     rotate(0);
                     step++;
                 }
                 break;
-            case 5:
-                rotate(0.0);
-                if (pose[2] <=(Math.PI / -6)) {
-                    rotate(0);
+            case 18: // wait in case auton conflicts
+                //timer
+                step++;
+                break;
+            case 19: // drive through stage door
+                drive(-0.3);
+                if(pose[0] >= (202)){
+                    drive(0);
                     step++;
+                }
+                break;
+            case 20: // line up with apriltags
+                //apriltag stuff
+                step++;
+                break;
+            case 21: // move forward to be at board
+                drive(-0.2);
+                if (pose[0] >= (213)){
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 22: // put pixel on board
+                //arm stuff
+                step++;
+                break;
+            case 23: // park for wings
+                if (location == -1){
+                    step++;
+                    break;
+                }
+                strafe(0.3);
+                if (pose[1] >= (117)){
+                    strafe(0);
+                }
+                break;
+            case 24: // park for backstage
+                strafe(-0.3);
+                if (pose[1] <= (5)){
+                    strafe (0);
+                }
+                break;
+            case 25: // backstage drive past pixel to do not hit it
+                drive(-0.3);
+                if (pose[0] >= (56)){
+                    drive(0);
+                    step=20;
                 }
                 break;
             default: // do nothing!
@@ -178,9 +325,9 @@ public class OdoWings extends OpMode {
         // runs odometry!
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
-        double rawRightEncoder = -rightEncoder.getCurrentPosition();
-        double rawBackEncoder = -backEncoder.getCurrentPosition();
+        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawRightEncoder = rightEncoder.getCurrentPosition();
+        double rawBackEncoder = backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
@@ -220,7 +367,7 @@ public class OdoWings extends OpMode {
         double xChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
         telemetry.addData("yChange", xChange);
 
-        pose[0] += xChange;
+        pose[0] += -xChange; // negated to quickly make left negative and right positive
         pose[1] += yChange;
         pose[2] += deltaTheta;
 
