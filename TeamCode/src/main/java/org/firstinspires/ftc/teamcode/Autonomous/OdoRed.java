@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.Autonomous;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -17,8 +17,8 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 import java.util.List;
 import android.util.Size;
 
-@Autonomous(name = "OdoRed", group="Iterative OpMode")
-public class OdoRed extends OpMode {
+@Autonomous(name = "OdoRed", group="Linear OpMode")
+public class OdoRed extends LinearOpMode {
 
     // declare motors!
     private DcMotor leftFront;
@@ -66,7 +66,7 @@ public class OdoRed extends OpMode {
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
     // current pose!
-    double[] pose = {0,0,0};
+    double[] pose = {0,0,90};
 
     // previous encoder positions!
     double prevLeftEncoder = 0;
@@ -87,7 +87,7 @@ public class OdoRed extends OpMode {
     ElapsedTime timer =  new ElapsedTime();
 
     @Override
-    public void init() {
+    public void runOpMode() {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
         rightFront = hardwareMap.get(DcMotor.class, "rightFront");
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
@@ -95,7 +95,7 @@ public class OdoRed extends OpMode {
 
         wrist = hardwareMap.get(DcMotor.class, "wrist");
 
-        leftBack.setDirection(DcMotor.Direction.REVERSE );
+        leftBack.setDirection(DcMotor.Direction.REVERSE);
 
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
@@ -132,260 +132,102 @@ public class OdoRed extends OpMode {
         prevRightEncoder = rightEncoder.getCurrentPosition();
         prevBackEncoder = backEncoder.getCurrentPosition();
 
-        if (locationSwitch.isPressed()){
+        if (locationSwitch.isPressed()) {
             location = -1;
         }
         initTfod();
         timer.reset();
-    }
 
+        waitForStart();
 
-    @Override
-    public void loop() {
         // repeating code - contains state machine!
+        while (!isStopRequested()) {
 
-        runOdometry();
+            runOdometry();
 
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
+            logCount++;
+            RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
 
 
-        switch(step) {
-            case -1:
-                //if tfod has been initialized
-                if (tfod != null) {
-                    switchCameras();
+            switch (step) {
+                case 0:
 
-                    //see function
-                    tfodtelemetry();
-                }
-                // if tfod hasn't been initialized
-                else {
-                    //say that it doesn't see anything and spike marker is default 3
-                    telemetry.addLine("Didn't load properly Spike Marker 3");
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e){
-                    telemetry.addLine("e");
-                }
-                if(spikeMark!=0){
-                    step++;
-                }
-                if (spikeMark == 0 && timer.seconds() >= 5 ) {
-                    spikeMark =2;
-                    step++;
-                }
-                break;
-            case 0: // drive forward, away from wall
-                visionPortal.stopStreaming();
-                intakeClawLeft.setPower(-1);
-                intakeClawRight.setPower(1);
-                drive(-0.3);
-                if (pose[1] >= 20) {
-                    drive(0);
-                    if (spikeMark == 1) {
-                        step++;
-                    }
-                    else if (spikeMark == 2) {
-                        step+=5;
-                    }
-                    else {
-                        step+=10;
-                    }
-                }
-                break;
-            case 1: // turn 270 degree to face SM 1
-                // spike mark 1
-                rotate(0.3);
-                if (pose[2] <= Math.toRadians(270)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 2: // move to SM 1
-                strafe(0.3);
-                if (pose[1] >= (67)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 3: //unhook wrist, drop pixel, rehook wrist
-                //do not odo things
-                dropPurplePixel();
-                step++;
-                break;
-            case 4: // strafe back to not hit pixel
-                strafe(-0.3);
-                if (pose[1] <= (27)) {
-                    rotate(0);
-                    step+= 11;
-                }
-                break;
-            case 5: // rotate to face SM2
-                // spike mark 2
-                rotate(0.3);
-                if (pose[2] >=(Math.toRadians(170))) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 6: // drive to reach SM2
-                dropPurplePixel();
-                step++;
-                break;
-            case 7://unhook wrist, drop pixel, rehook wrist
-                //do not odo things
-                drive(0.3);
-                if (pose[1] >= (45)){
-                    drive(0);
-                    step++;
-                }
-                break;
-            case 8: // back away from pixel
-                drive(-0.3);
-                if (pose[1] <= (27)) {
-                    drive(0);
-                    step++;
-                }
-                break;
-            case 9: // rotate to face o=correct direction
-                rotate(0.3);
-                if (pose[2] >= (Math.toRadians(260))){
-                    rotate(0);
-                    step=15;
-                }
-                break;
-            case 10: //rotate to face SM3
-                //spike mark 3
-                rotate(0.3);
-                if (pose[2] >= Math.toRadians(90)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 11: // strafe to line up with SM3
-                strafe(-0.3);
-                if (pose[1] >= (64)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 12://unhook wrist, drop pixel, rehook wrist
-                //do not odo things
-                dropPurplePixel();
-                step++;
-                break;
-            case 13: // move back to not hit pixel
-                strafe(0.3);
-                if (pose[1] <= (27)) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 14: // turn to face correct direction
-                rotate(0.3);
-                if (pose[2] <=(Math.toRadians(270))) {
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 15: // move back to not hit pixel
-                //wings
-                if (location == -1){
-                    step+=9;
                     break;
-                }
-                drive(0.3);
-                if (pose[0] <= (-25)){
-                    drive (0);
-                    step++;
-                }
-                break;
-            case 16: // strafe to line up with stage door
-                strafe(-0.3);
-                if(pose[1] <= (-40)){
-                    strafe(0);
-                    step++;
-                }
-                break;
-            case 17: // fix rotation
-                rotate(0.3);
-                if (pose[2] >= (Math.toRadians(250))){
-                    rotate(0);
-                    step++;
-                }
-                break;
-            case 18: // wait in case auton conflicts
-                //timer
-                step++;
-                break;
-            case 19: // drive through stage door stopping auton here
-                drive(-0.3);
-                if(pose[0] >= (252)){
-                    drive(0);
-                    step=26                            ;
-                }
-                break;
-            case 20: // line up with apriltags
-                //apriltag stuff
-                step++;
-                break;
-            case 21: // move forward to be at board
-                drive(-0.2);
-                if (pose[0] >= (213)){
-                    drive(0);
-                    step++;
-                }
-                break;
-            case 22: // put pixel on board
-                //arm stuff
-                step++;
-                break;
-            case 23: // park for wings
-                if (location == -1){
-                    step++;
+                case 1:
+
                     break;
-                }
-                strafe(0.3);
-                if (pose[1] >= (117)){
-                    strafe(0);
-                }
-                break;
-            case 24: // park for backstage
-                strafe(-0.3);
-                if (pose[1] <= (5)){
-                    strafe (0);
-                }
-                break;
-            case 25: // backstage drive past pixel to do not hit it // auton stop here
-                drive(-0.3);
-                if (pose[0] >= (90)){
-                    drive(0);
-                    step=26;
-                }
-                break;
-            case 26: // comp 3 auton end
-                //drop pixel
-                dropOtherPixel();
-                break;
-            default: // do nothing!
-                drive(0);
-                stop();
+                case 2:
+
+                    break;
+                case 3:
+
+                    break;
+                case 4:
+
+                    break;
+                case 5:
+
+                    break;
+                case 6:
+
+                    break;
+                case 7:
+
+                    break;
+                case 8:
+
+                    break;
+                case 9:
+
+                    break;
+                case 10:
+
+                    break;
+                case 11:
+
+                    break;
+                case 12:
+                    break;
+                case 13:
+                    break;
+                case 14:
+                    break;
+                case 15:
+
+                    break;
+                case 16:
+                    break;
+                case 17:
+                    break;
+                case 18:
+                    break;
+                case 19:
+                    break;
+                case 20:
+                    break;
+                case 21:
+                    break;
+                case 22:
+                    break;
+                case 23:
+                    break;
+                case 24:
+                    break;
+                case 25:
+                    break;
+                case 26:
+                    break;
+                default: // do nothing!
+                    stop();
+            }
+
+            telemetry.addData("Pose0", pose[0]);
+            telemetry.addData("Pose1", pose[1]);
+            telemetry.addData("Pose2", Math.toDegrees(pose[2]));
+            telemetry.addData("Case", step);
+
+            telemetry.update();
         }
-
-        telemetry.addData("Pose0", pose[0]);
-        telemetry.addData("Pose1", pose[1]);
-        telemetry.addData("Pose2", Math.toDegrees(pose[2]));
-        telemetry.addData("Case", step);
-
-        telemetry.update();
-    }
-
-
-    @Override
-    public void stop() {
-        // stops code
     }
 
     public void runOdometry() {
