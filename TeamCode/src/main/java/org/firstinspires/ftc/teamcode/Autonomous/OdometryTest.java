@@ -110,7 +110,7 @@ public class OdometryTest extends OpMode {
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[1] >= 30) {
+                if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
@@ -120,7 +120,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 1: // strafe right!
                 strafe(0.3);
-                if (pose[0] >= 30) {
+                if (pose[0] >= 20) {
                     strafe(0);
                     step++;
                 }
@@ -148,7 +148,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 5: // strafe to center of field
                 strafe(-0.3);
-                if (pose[1] >= 30) {
+                if (pose[1] >= 20) {
                     strafe(0);
                     step++;
                 }
@@ -169,7 +169,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 8: // strafe towards center of field
                 strafe(0.3);
-                if (pose[1] >= 30) {
+                if (pose[1] >= 20) {
                     strafe(0);
                     step++;
                 }
@@ -190,7 +190,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 11: // move towards truss
                 drive(0.3);
-                if (pose[0] >= 30) {
+                if (pose[0] >= 20) {
                     drive(0);
                     step++;
                 }
@@ -211,7 +211,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 14: // move forward towards field wall
                 drive(0.3);
-                if (pose[0] <= -30) {
+                if (pose[0] <= -20) {
                     drive(0);
                     step++;
                 }
@@ -232,7 +232,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 17: // drive forward
                 drive(0.3);
-                if (pose[1] >= 30) {
+                if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
@@ -253,7 +253,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 20: // strafe left
                 strafe(-0.3);
-                if (pose[0] >= 30) {
+                if (pose[0] >= 20) {
                     strafe(0);
                     step++;
                 }
@@ -274,7 +274,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 23: // move backwards until 30 cm
                 drive(-0.3);
-                if (pose[1] >= 30) {
+                if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
@@ -295,7 +295,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 26: // drive backwards until 30 cm from field wall
                 drive(-0.3);
-                if (pose[1] >= 30) {
+                if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
