@@ -486,8 +486,8 @@ public class Drive extends OpMode {
 
         // arm joystick - look into why etpark does not work
         if (Math.abs(lefty2) > 0.1) {
-            verticalArm.setPower(lefty2 * 0.3);
-            verticalArm2.setPower(lefty2 * 0.3);
+            verticalArm.setPower(lefty2 * 0.5);
+            verticalArm2.setPower(lefty2 * 0.5);
         }
         else if (buttonup2) {
             verticalArm.setPower(-0.7);

@@ -19,6 +19,7 @@ public class FirstCompWings extends LinearOpMode{
     private DcMotor rightBack;
 
     private DcMotor verticalArm;
+    private DcMotor verticalArm2;
 
     private CRServo intakeClawLeft;
     private CRServo intakeClawRight;
@@ -43,8 +44,14 @@ public class FirstCompWings extends LinearOpMode{
         leftBack = hardwareMap.get(DcMotor.class, "leftBack");
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
+
+        leftBack.setDirection(DcMotor.Direction.REVERSE );
+        verticalArm.setDirection(DcMotor.Direction.REVERSE);
+        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+
 
 
         allianceSwitch = hardwareMap.get(TouchSensor.class, "allianceSwitch");
@@ -92,13 +99,13 @@ public class FirstCompWings extends LinearOpMode{
 
 
         // drop pixel
-        dropPixel(2000);
+        //dropPixel(2000);
 
 
         // back up a little
-        verticalArm.setPower(0.7);
-        sleep(2500);
-        verticalArm.setPower(0);
+        //verticalArm.setPower(0.7);
+        //sleep(2500);
+        //verticalArm.setPower(0);
 
 
 
