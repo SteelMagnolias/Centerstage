@@ -42,7 +42,7 @@ public class OdometryTest extends OpMode {
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
     // current pose!
-    double[] pose = {0,0,0};
+    double[] pose = {0,0,90};
 
     // previous encoder positions!
     double prevLeftEncoder = 0;
@@ -110,7 +110,7 @@ public class OdometryTest extends OpMode {
         switch(step) {
             case 0: // drive forward!
                 drive(0.3);
-                if (pose[1] >= 60) {
+                if (pose[1] >= 30) {
                     drive(0);
                     step++;
                 }
@@ -119,8 +119,8 @@ public class OdometryTest extends OpMode {
                 //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
             case 1: // strafe right!
-                strafe(-0.3);
-                if (pose[0] >= 60) {
+                strafe(0.3);
+                if (pose[0] >= 30) {
                     strafe(0);
                     step++;
                 }
@@ -133,23 +133,177 @@ public class OdometryTest extends OpMode {
                 }
                 break;
             case 3: // strafe left!
-                strafe(0.3);
+                strafe(-0.3);
                 if(pose[0] <= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
-            case 4: // rotate right!
-                rotate(-0.3);
-                if (pose[2] >= (Math.PI / 6)) {
+            case 4: // rotate clockwise!
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(0)) {
                     rotate(0);
                     step++;
                 }
                 break;
-            case 5: // rotate left!
-                rotate(0.3);
-                if (pose[2] <=(Math.PI / -6)) {
+            case 5: // strafe to center of field
+                strafe(-0.3);
+                if (pose[1] >= 30) {
+                    strafe(0);
+                    step++;
+                }
+                break;
+            case 6: // strafe back to original position
+                strafe(0.3);
+                if (pose[1] <= 0) {
+                    strafe(0);
+                    step++;
+                }
+                break;
+            case 7: // rotate counter-clockwise
+                rotate(-0.3);
+                if (pose[2] >= Math.toRadians(180)) {
                     rotate(0);
+                    step++;
+                }
+                break;
+            case 8: // strafe towards center of field
+                strafe(0.3);
+                if (pose[1] >= 30) {
+                    strafe(0);
+                    step++;
+                }
+                break;
+            case 9: // strafe back to starting position
+                strafe(-0.3);
+                if (pose[1] <= 0) {
+                    strafe(0);
+                    step++;
+                }
+                break;
+            case 10: // rotate to face truss
+                rotate(-0.3);
+                if (pose[2] >= Math.toRadians(360)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 11: // move towards truss
+                drive(0.3);
+                if (pose[0] >= 30) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 12: // move back from truss to origin position
+                drive(-0.3);
+                if (pose[0] <= 0) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 13: // rotate to face field wall
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(180)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 14: // move forward towards field wall
+                drive(0.3);
+                if (pose[0] <= -30) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 15: // move backward to origin point
+                drive(-0.3);
+                if (pose[0] >= 0) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 16: // rotate to 110 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(110)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 17: // drive forward
+                drive(0.3);
+                if (pose[1] >= 30) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 18: // drive backwards
+                drive(-0.3);
+                if (pose[1] <= 0) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 19: // rotate to 45 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(45)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 20: // strafe left
+                strafe(-0.3);
+                if (pose[0] >= 30) {
+                    strafe(0);
+                    step++;
+                }
+                break;
+            case 21: // strafe right
+                strafe(0.3);
+                if (pose[0] <= 0) {
+                    strafe(0);
+                    step++;
+                }
+                break;
+            case 22: // rotate to -45 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(-45)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 23: // move backwards until 30 cm
+                drive(-0.3);
+                if (pose[1] >= 30) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 24: // move forwards until back at origin
+                drive(0.3);
+                if (pose[1] <= 0) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 25: // rotate to be -110 degrees
+                rotate(0.3);
+                if (pose[2] <= -110) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 26: // drive backwards until 30 cm from field wall
+                drive(-0.3);
+                if (pose[1] >= 30) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 27: // drive forwards until back at origin
+                drive(0.3);
+                if (pose[1] <= 0) {
+                    drive(0);
                     step++;
                 }
                 break;
@@ -174,11 +328,14 @@ public class OdometryTest extends OpMode {
 
     public void runOdometry() {
         // runs odometry!
+        // robot front faces 90 degrees
+        // x direction is horizontal is parallel to driver station
+        // y direction is perpendicular to driver station
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = -backEncoder.getCurrentPosition();
+        double rawBackEncoder = backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
@@ -210,13 +367,13 @@ public class OdometryTest extends OpMode {
         I wanted it to be like a normal graph
          */
 
-        //find change in y!
-        double yChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
-        telemetry.addData("xChange", yChange);
+        //find change in x!
+        double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
+        telemetry.addData("xChange", xChange);
 
-        // find changein x!
-        double xChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
-        telemetry.addData("yChange", xChange);
+        // find changein y!
+        double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
+        telemetry.addData("yChange", yChange);
 
         pose[0] += xChange;
         pose[1] += yChange;
