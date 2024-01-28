@@ -124,7 +124,6 @@ public class Drive extends OpMode {
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
         wrist = hardwareMap.get(DcMotor.class, "wrist");
-        wrist.setDirection(DcMotor.Direction.REVERSE);
 
         //sensors
         potentiometer = hardwareMap.get(AnalogInput.class, "potentiometer");
@@ -421,8 +420,7 @@ public class Drive extends OpMode {
                 else if (x2) {
                     armPos = ArmState.EMERGENCY;
                 }
-
-                if (back2) {
+                else if (back2) {
                     // change to manual mode
                     armPos = ArmState.MANUAL;
                     verticalArm.setPower(0);
