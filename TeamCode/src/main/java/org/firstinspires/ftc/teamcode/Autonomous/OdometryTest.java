@@ -69,6 +69,7 @@ public class OdometryTest extends OpMode {
         rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -81,6 +82,7 @@ public class OdometryTest extends OpMode {
 
         verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+
 
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
@@ -333,7 +335,7 @@ public class OdometryTest extends OpMode {
         // y direction is perpendicular to driver station
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
         double rawRightEncoder = rightEncoder.getCurrentPosition();
         double rawBackEncoder = backEncoder.getCurrentPosition();
 

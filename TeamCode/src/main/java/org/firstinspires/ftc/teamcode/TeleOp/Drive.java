@@ -114,10 +114,10 @@ public class Drive extends OpMode {
 
         // reverse motors
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
-        verticalArm.setDirection(DcMotor.Direction.REVERSE);
+        //verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
         verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
-        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+        //verticalArm2.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
@@ -488,8 +488,8 @@ public class Drive extends OpMode {
             verticalArm2.setPower(lefty2 * 0.5);
         }
         else if (buttonup2) {
-            verticalArm.setPower(-0.7);
-            verticalArm2.setPower(-0.7);
+            verticalArm.setPower(-0.9);
+            verticalArm2.setPower(-0.9);
         }
         else {
             verticalArm.setPower(0);
