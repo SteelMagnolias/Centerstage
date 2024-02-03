@@ -35,14 +35,14 @@ public class OdometryTest extends OpMode {
 
 
     // bot constraints:
-    double trackWidth = 19.2; //(cm)!
-    double yOffSet = -18.85; //(cm)!
+    double trackWidth = 20.5; //(cm)!
+    double yOffSet = -13.5; //(cm)!
     double wheelRadius = 1.75; // centimeters!
     double cpr = 8192; // counts per rotation!
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
     // current pose!
-    double[] pose = {0,0,90};
+    double[] pose = {0,0,Math.toRadians(90)};
 
     // previous encoder positions!
     double prevLeftEncoder = 0;
@@ -65,24 +65,26 @@ public class OdometryTest extends OpMode {
 
         leftBack.setDirection(DcMotor.Direction.REVERSE );
 
+
+        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
+        verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
+        verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+
+        verticalArm.setDirection(DcMotor.Direction.REVERSE);
+        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
+
+
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        verticalArm2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
-        verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
-        verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm");
-        verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
-
-        verticalArm.setDirection(DcMotor.Direction.REVERSE);
-        verticalArm2.setDirection(DcMotor.Direction.REVERSE);
-
+        verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
@@ -90,11 +92,11 @@ public class OdometryTest extends OpMode {
 
         // fix encoders resets - wrong motors reset might be issue!
         leftEncoder = rightFront;
-        rightEncoder = wrist;
+        rightEncoder = verticalArm2;
         backEncoder = rightBack;
 
-        prevLeftEncoder = leftEncoder.getCurrentPosition();
-        prevRightEncoder = rightEncoder.getCurrentPosition();
+        prevLeftEncoder = -leftEncoder.getCurrentPosition();
+        prevRightEncoder = -rightEncoder.getCurrentPosition();
         prevBackEncoder = -backEncoder.getCurrentPosition();
     }
 
@@ -111,7 +113,7 @@ public class OdometryTest extends OpMode {
 
         switch(step) {
             case 0: // drive forward!
-                drive(0.3);
+                drive(0.4);
                 if (pose[1] >= 20) {
                     drive(0);
                     step++;
@@ -121,189 +123,189 @@ public class OdometryTest extends OpMode {
                 //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
             case 1: // strafe right!
-                strafe(0.3);
+                strafe(-0.4);
                 if (pose[0] >= 20) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 2: // drive back!
-                drive(-0.3);
+                drive(-0.4);
                 if (pose[1] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 3: // strafe left!
-                strafe(-0.3);
+                strafe(0.4);
                 if(pose[0] <= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 4: // rotate clockwise!
-                rotate(0.3);
+                rotate(0.4);
                 if (pose[2] <= Math.toRadians(0)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 5: // strafe to center of field
-                strafe(-0.3);
+                strafe(0.4);
                 if (pose[1] >= 20) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 6: // strafe back to original position
-                strafe(0.3);
+                strafe(-0.4);
                 if (pose[1] <= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 7: // rotate counter-clockwise
-                rotate(-0.3);
+                rotate(-0.4);
                 if (pose[2] >= Math.toRadians(180)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 8: // strafe towards center of field
-                strafe(0.3);
+                strafe(-0.4);
                 if (pose[1] >= 20) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 9: // strafe back to starting position
-                strafe(-0.3);
+                strafe(0.4);
                 if (pose[1] <= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 10: // rotate to face truss
-                rotate(-0.3);
+                rotate(-0.4);
                 if (pose[2] >= Math.toRadians(360)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 11: // move towards truss
-                drive(0.3);
+                drive(0.4);
                 if (pose[0] >= 20) {
                     drive(0);
                     step++;
                 }
                 break;
             case 12: // move back from truss to origin position
-                drive(-0.3);
+                drive(-0.4);
                 if (pose[0] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 13: // rotate to face field wall
-                rotate(0.3);
+                rotate(0.4);
                 if (pose[2] <= Math.toRadians(180)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 14: // move forward towards field wall
-                drive(0.3);
+                drive(0.4);
                 if (pose[0] <= -20) {
                     drive(0);
                     step++;
                 }
                 break;
             case 15: // move backward to origin point
-                drive(-0.3);
+                drive(-0.4);
                 if (pose[0] >= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 16: // rotate to 110 degrees
-                rotate(0.3);
+                rotate(0.4);
                 if (pose[2] <= Math.toRadians(110)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 17: // drive forward
-                drive(0.3);
+                drive(0.4);
                 if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
                 break;
             case 18: // drive backwards
-                drive(-0.3);
+                drive(-0.4);
                 if (pose[1] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 19: // rotate to 45 degrees
-                rotate(0.3);
+                rotate(0.4);
                 if (pose[2] <= Math.toRadians(45)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 20: // strafe left
-                strafe(-0.3);
-                if (pose[0] >= 20) {
+                strafe(0.4);
+                if (pose[0] <= -20) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 21: // strafe right
-                strafe(0.3);
-                if (pose[0] <= 0) {
+                strafe(-0.4);
+                if (pose[0] >= 0) {
                     strafe(0);
                     step++;
                 }
                 break;
             case 22: // rotate to -45 degrees
-                rotate(0.3);
+                rotate(0.4);
                 if (pose[2] <= Math.toRadians(-45)) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 23: // move backwards until 30 cm
-                drive(-0.3);
+                drive(-0.4);
                 if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
                 break;
             case 24: // move forwards until back at origin
-                drive(0.3);
+                drive(0.4);
                 if (pose[1] <= 0) {
                     drive(0);
                     step++;
                 }
                 break;
             case 25: // rotate to be -110 degrees
-                rotate(0.3);
+                rotate(0.4);
                 if (pose[2] <= -110) {
                     rotate(0);
                     step++;
                 }
                 break;
             case 26: // drive backwards until 30 cm from field wall
-                drive(-0.3);
+                drive(-0.4);
                 if (pose[1] >= 20) {
                     drive(0);
                     step++;
                 }
                 break;
             case 27: // drive forwards until back at origin
-                drive(0.3);
+                drive(0.4);
                 if (pose[1] <= 0) {
                     drive(0);
                     step++;
@@ -316,7 +318,7 @@ public class OdometryTest extends OpMode {
 
         telemetry.addData("Pose0", pose[0]);
         telemetry.addData("Pose1", pose[1]);
-        telemetry.addData("Pose2", pose[2]);
+        telemetry.addData("Pose2", Math.toDegrees(pose[2]));
         telemetry.addData("Case", step);
 
         telemetry.update();
@@ -336,7 +338,7 @@ public class OdometryTest extends OpMode {
 
         // distance wheel turns in cm!
         double rawLeftEncoder = -leftEncoder.getCurrentPosition();
-        double rawRightEncoder = rightEncoder.getCurrentPosition();
+        double rawRightEncoder = -rightEncoder.getCurrentPosition();
         double rawBackEncoder = backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
@@ -352,7 +354,7 @@ public class OdometryTest extends OpMode {
         telemetry.addData("Raw Back Change", rawChangeBack);
 
         // find change in theta!
-        double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
+        double deltaTheta = -(rawChangeLeft - rawChangeRight) / trackWidth;
         telemetry.addData("deltaTheta", deltaTheta);
 
         // find change of x (center)!
@@ -408,6 +410,7 @@ public class OdometryTest extends OpMode {
         RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
     }
 
+
     public void drive(double pow) {
         // drive forward or backward
         leftFront.setPower(pow);
@@ -427,9 +430,9 @@ public class OdometryTest extends OpMode {
 
     public void rotate(double pow) {
         // rotate left or right counter clockwise
-        leftFront.setPower(-pow);
-        rightFront.setPower(pow);
-        leftBack.setPower(-pow);
-        rightBack.setPower(pow);
+        leftFront.setPower(pow);
+        rightFront.setPower(-pow);
+        leftBack.setPower(pow);
+        rightBack.setPower(-pow);
     }
 }

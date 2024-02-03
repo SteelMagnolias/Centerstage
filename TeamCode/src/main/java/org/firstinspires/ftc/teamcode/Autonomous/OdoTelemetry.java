@@ -146,11 +146,14 @@ public class OdoTelemetry extends OpMode {
 
     public void runOdometry() {
         // runs odometry!
+        // robot front faces 90 degrees
+        // x direction is horizontal is parallel to driver station
+        // y direction is perpendicular to driver station
 
         // distance wheel turns in cm!
-        double rawLeftEncoder = leftEncoder.getCurrentPosition();
-        double rawRightEncoder = rightEncoder.getCurrentPosition();
-        double rawBackEncoder = backEncoder.getCurrentPosition();
+        double rawLeftEncoder = -leftEncoder.getCurrentPosition();
+        double rawRightEncoder = -rightEncoder.getCurrentPosition();
+        double rawBackEncoder = -backEncoder.getCurrentPosition();
 
         telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
@@ -178,17 +181,17 @@ public class OdoTelemetry extends OpMode {
 
         /*
         NOTICE - yChange and xChange (below) are swapped from GM0
-        This is because in GM0, they swap the x and y axis.
-        I wanted it to be like a normal graph :)
+        This is because in GM0, they swap the x and y axis
+        I wanted it to be like a normal graph
          */
 
-        //find change in y!
-        double yChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
-        telemetry.addData("xChange", yChange);
+        //find change in x!
+        double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
+        telemetry.addData("xChange", xChange);
 
-        // find changein x!
-        double xChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
-        telemetry.addData("yChange", xChange);
+        // find changein y!
+        double yChange = xCenter * Math.sin(pose[2]) + xPerp * Math.cos(pose[2]);
+        telemetry.addData("yChange", yChange);
 
         pose[0] += xChange;
         pose[1] += yChange;
