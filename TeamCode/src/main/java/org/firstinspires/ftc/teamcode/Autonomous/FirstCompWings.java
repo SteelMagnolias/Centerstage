@@ -49,6 +49,8 @@ public class FirstCompWings extends LinearOpMode{
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
 
         leftBack.setDirection(DcMotor.Direction.REVERSE );
+
+
         verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setDirection(DcMotor.Direction.REVERSE);
 
@@ -93,9 +95,12 @@ public class FirstCompWings extends LinearOpMode{
         drive(+drivePow , +drivePow , +drivePow , +drivePow , 5750);
 
         // back up a little
+        /*
         verticalArm.setPower(0.3);
+        verticalArm2.setPower(0.3);
         sleep(2000);
         verticalArm.setPower(0);
+        verticalArm2.setPower(0);*/
 
 
         // drop pixel

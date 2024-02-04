@@ -86,6 +86,12 @@ public class OdometryTest extends OpMode {
         rightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         verticalArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
@@ -292,7 +298,7 @@ public class OdometryTest extends OpMode {
                 break;
             case 25: // rotate to be -110 degrees
                 rotate(0.4);
-                if (pose[2] <= -110) {
+                if (pose[2] <= Math.toRadians(-110)) {
                     rotate(0);
                     step++;
                 }
