@@ -65,6 +65,7 @@ public class CameraTest extends LinearOpMode {
             else {
                 //say that it doesn't see anything and spike marker is default 3
                 telemetry.addLine("Didn't load properly Spike Marker 3");
+                telemetry.update();
             }
             sleep(1000);
         }
@@ -122,12 +123,7 @@ public class CameraTest extends LinearOpMode {
     //function for tfod telemetry
     private void tfodtelemetry() {
         telemetry.addData("camera #", visionPortal.getActiveCamera());
-        if (visionPortal.getActiveCamera().equals(camera1)){
-            telemetry.addLine("cam = 1");
-        }
-        else if (visionPortal.getActiveCamera().equals(camera2)){
-            telemetry.addLine("cam = 2");
-        }
+        telemetry.addData("Camera Variable", cam);
         telemetry.addData("SpikeMark", spikeMark);
         List<Recognition> currentRecognitions = tfod.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
@@ -147,7 +143,6 @@ public class CameraTest extends LinearOpMode {
                 //average y coordinates
                 y = (recognition.getTop() + recognition.getBottom()) / 2;
 
-                telemetry.addData("", " ");
                 telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
                 telemetry.addData("- Position", "%.0f / %.0f", x, y);
                 telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());

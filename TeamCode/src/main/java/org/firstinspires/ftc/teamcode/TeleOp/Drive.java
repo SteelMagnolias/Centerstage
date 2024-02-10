@@ -55,9 +55,9 @@ public class Drive extends OpMode {
     double KpArm = 0;
     double KiArm= 0;
     double KdArm = 0;
-    double referenceArmDown = -480;
-    double referenceArmUp = -4800;
-    double referenceArmCurled = 0;
+    double referenceArmDown = 0;
+    double referenceArmUp = 5353;
+    double referenceArmCurled = 10;
 
     double KpWristDown = 3.2;
     double KiWristDown = 0;
@@ -71,9 +71,9 @@ public class Drive extends OpMode {
     double KiWristUp = 0;
     double KdWristUp = 0.2;
     // volts
-    double referenceWristDown = 0.07;
-    double referenceWristUp = 2.9;
-    double referenceWristTuck = 1.2;
+    double referenceWristDown = 3.31;
+    double referenceWristUp = 0.17;
+    double referenceWristTuck = 1.17;
 
     // volts
 
@@ -116,6 +116,9 @@ public class Drive extends OpMode {
         verticalArm = hardwareMap.get(DcMotor.class, "verticalArm");
         //verticalArm.setDirection(DcMotor.Direction.REVERSE);
         verticalArm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
+        verticalArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); // reset encoder
+        verticalArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // run without encoder
+
         verticalArm2 = hardwareMap.get(DcMotor.class, "verticalArm2");
         //verticalArm2.setDirection(DcMotor.Direction.REVERSE);
         verticalArm2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE); // hold position
@@ -203,7 +206,7 @@ public class Drive extends OpMode {
 
         telemetry.addData("Other:", "Sensors");
         telemetry.addData("potentiometerVoltage", potentiometerVoltage);
-        telemetry.addData("armEncoder", verticalArm2.getCurrentPosition());
+        telemetry.addData("armEncoder", verticalArm.getCurrentPosition());
 
 
 
