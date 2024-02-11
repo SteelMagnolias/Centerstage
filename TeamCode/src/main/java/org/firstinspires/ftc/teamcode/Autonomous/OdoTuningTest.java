@@ -47,7 +47,7 @@ public class OdoTuningTest extends OpMode {
     double WHEEL_CIRCUMFERENCE_BACK = Math.PI * WHEEL_BACK_DIAMETER;
 
     // current pose!
-    double[] pose = {0,0,Math.toRadians(0)};
+    double[] pose = {0,0,Math.toRadians(270)};
 
     // previous encoder positions!
     double prevLeftEncoder = 0;
@@ -118,65 +118,103 @@ public class OdoTuningTest extends OpMode {
 
         runOdometry();
 
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
-
 
         switch(step) {
             case 0: // drive forward 10 cm from origin
-                drive(0.3);
+                drive(-0.3);
                 if (pose[1] >= 10) {
                     drive(0);
                     step++;
+                    RobotLog.d("Case: " + 0);
+
                 }
                 break;
             case 1: // drive backward 10 cm back to origin
-                drive(-0.3);
+                drive(0.3);
                 if (pose[1] <= 0) {
                     drive(0);
                     step++;
+                    RobotLog.d("Case: " + 1);
                 }
                 break;
             case 2: // strafe right 10 cm from origin
                 strafe(0.3);
-                if (pose[0] >= 10) {
+                if (pose[0] <= -10) {
                     strafe(0);
                     step++;
+                    RobotLog.d("Case: " + 2);
                 }
                 break;
             case 3: // strafe left 10 cm to origin
                 strafe(-0.3);
-                if (pose[0] <= 0) {
+                if (pose[0] >= 0) {
                     strafe(0);
                     step++;
+                    RobotLog.d("Case: " + 3);
                 }
                 break;
             case 4: // rotate counter clockwise to 180 degrees
                 rotate(-0.3);
-                if (pose[2] >= 180) {
+                if (pose[2] >= Math.toRadians(360)) {
                     rotate(0);
                     step++;
+                    RobotLog.d("Case: " + 4);
                 }
                 break;
             case 5: // rotate counter clockwise to 270 degrees
                 rotate(-0.3);
-                if (pose[2] >= 270) {
+                if (pose[2] >= Math.toRadians(450)) {
                     rotate(0);
                     step++;
+                    RobotLog.d("Case: " + 5);
                 }
                 break;
             case 6: // rotate counter clockwise to 360 degrees
                 rotate(-0.3);
-                if (pose[2] >= 360) {
+                if (pose[2] >= Math.toRadians(540)) {
                     rotate(0);
                     step++;
+                    RobotLog.d("Case: " + 6);
                 }
                 break;
             case 7: // rotate counter clockwise to 450 degrees (90), code doesn't reset when we go through a full circle
                 rotate(-0.3);
-                if (pose[2] >= 450) {
+                if (pose[2] >= Math.toRadians(630)) {
                     rotate(0);
                     step++;
+                    RobotLog.d("Case: " + 7);
+                }
+                break;
+            case 8: // rotate clockwise to 540 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(540)) {
+                    rotate(0);
+                    step++;
+                    RobotLog.d("Case: " + 8);
+                }
+                break;
+            case 9: // rotate clocwise to 450 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(450)) {
+                    rotate(0);
+                    step++;
+                    RobotLog.d("Case: " + 9);
+                }
+                break;
+            case 10: // rotate clockwise to 360 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(360)) {
+                    rotate(0);
+                    step++;
+                    RobotLog.d("Case: " + 10);
+                }
+                break;
+            case 11: // rotate clockwise to 270 degrees
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(270)) {
+                    rotate(0);
+                    step++;
+                    RobotLog.d("Case: " + 11);
                 }
                 break;
             default: // do nothing!
@@ -259,23 +297,7 @@ public class OdoTuningTest extends OpMode {
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);*/
 
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    rawLeftEncoder: " + rawLeftEncoder);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    rawRightEncoder: " + rawRightEncoder);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    rawBackEncoder: " + rawBackEncoder);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    pose[0]: " + pose[0]);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    pose[1]: " + pose[1]);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    pose[2]: " + pose[2]);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    ");
-
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
+        RobotLog.d("values: " + rawLeftEncoder + ", " + rawRightEncoder + ", " + rawBackEncoder + ", " + pose[0] + ", " + pose[1] + ", " + pose[2]);
     }
 
 
