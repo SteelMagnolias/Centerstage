@@ -65,7 +65,7 @@ public class Drive extends OpMode {
     double referenceArmUp = 5353;
     double referenceArmCurled = 10;
 
-    double KpWristDown = 3.2;
+    double KpWristDown = 0;
     double KiWristDown = 0;
     double KdWristDown = 0;
 
@@ -73,12 +73,12 @@ public class Drive extends OpMode {
     double KiWristTuck = 0;
     double KdWristTuck = 0;
 
-    double KpWristUp = 1.3;
+    double KpWristUp = -2.5;
     double KiWristUp = 0;
-    double KdWristUp = 0.2;
+    double KdWristUp = 0;
     // volts
-    double referenceWristDown = 3.31;
-    double referenceWristUp = 0.17;
+    double referenceWristDown = 3.307;
+    double referenceWristUp = 0.19;
     double referenceWristTuck = 1.17;
 
     // volts
@@ -91,6 +91,7 @@ public class Drive extends OpMode {
     double armPow = 0.6; // arm power
     double theta; // angle of wheels joystick
     double wristPower = 0.8;
+    double wristPowerPID = 0;
 
     enum ArmState {
         ARM_UP,
@@ -362,10 +363,10 @@ public class Drive extends OpMode {
 
         switch(armPos) {
             case ARM_DOWN:
-                wrist.setPower(0.6 + PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, potentiometerVoltage));
-                armPow = 0.6 +  PIDControlArmDown(KpArmDown, KiArmDown, KdArmDown, referenceArmDown, potentiometerVoltage);
-                verticalArm.setPower(armPow);
-                verticalArm2.setPower(armPow);
+                wrist.setPower(PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, potentiometerVoltage));
+                //armPow = 0.6 +  PIDControlArmDown(KpArmDown, KiArmDown, KdArmDown, referenceArmDown, potentiometerVoltage);
+                //verticalArm.setPower(armPow);
+                //verticalArm2.setPower(armPow);
 
                 if (y2) {
                     // move arm up
@@ -389,10 +390,12 @@ public class Drive extends OpMode {
 
                 break;
             case ARM_UP:
-                wrist.setPower(0.6 + PIDControlWristUp(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, potentiometerVoltage));
-                armPow = 0.6 + PIDControlArmUp(KpArmUp, KiArmUp, KdArmUp, referenceArmUp, potentiometerVoltage);
-                verticalArm.setPower(armPow);
-                verticalArm2.setPower(armPow);
+                wristPowerPID = PIDControlWristUp(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, potentiometerVoltage);
+
+                wrist.setPower(wristPowerPID);
+                //armPow = 0.6 + PIDControlArmUp(KpArmUp, KiArmUp, KdArmUp, referenceArmUp, potentiometerVoltage);
+                //verticalArm.setPower(armPow);
+                //verticalArm2.setPower(armPow);
 
                 if (a2) {
                     // move to down position
