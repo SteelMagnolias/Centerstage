@@ -38,7 +38,7 @@ public class Drive extends OpMode {
 
     // sensors
     private AnalogInput potentiometer;
-    double potentiometerVoltage;
+    //double potentiometerVoltage;
 
     // PID
     double integralSum = 0;
@@ -80,6 +80,7 @@ public class Drive extends OpMode {
     double referenceWristDown = 3.307;
     double referenceWristUp = 0.19;
     double referenceWristTuck = 1.17;
+    double wristSpeedLimit = 0.6;
 
     // volts
 
@@ -134,9 +135,11 @@ public class Drive extends OpMode {
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
 
         wrist = hardwareMap.get(DcMotor.class, "wrist");
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //sensors
-        potentiometer = hardwareMap.get(AnalogInput.class, "potentiometer");
+        //potentiometer = hardwareMap.get(AnalogInput.class, "potentiometer");
     }
 
 
@@ -179,7 +182,7 @@ public class Drive extends OpMode {
         boolean back2 = gamepad2.back;
 
         // sensor readings
-        potentiometerVoltage = potentiometer.getVoltage();
+        //potentiometerVoltage = potentiometer.getVoltage();
 
         // telemetry
         telemetry.addData("Gamepad:", 1);
@@ -212,7 +215,7 @@ public class Drive extends OpMode {
         telemetry.addData("rb2", rb2);
 
         telemetry.addData("Other:", "Sensors");
-        telemetry.addData("potentiometerVoltage", potentiometerVoltage);
+        //telemetry.addData("potentiometerVoltage", potentiometerVoltage);
         telemetry.addData("armEncoder", verticalArm.getCurrentPosition());
 
 
@@ -363,7 +366,7 @@ public class Drive extends OpMode {
 
         switch(armPos) {
             case ARM_DOWN:
-                wrist.setPower(PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, potentiometerVoltage));
+                wrist.setPower(PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, wrist.getCurrentPosition()));
                 //armPow = 0.6 +  PIDControlArmDown(KpArmDown, KiArmDown, KdArmDown, referenceArmDown, potentiometerVoltage);
                 //verticalArm.setPower(armPow);
                 //verticalArm2.setPower(armPow);
@@ -390,7 +393,7 @@ public class Drive extends OpMode {
 
                 break;
             case ARM_UP:
-                wristPowerPID = PIDControlWristUp(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, potentiometerVoltage);
+                wristPowerPID = PIDControlWristUp(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, wrist.getCurrentPosition());
 
                 wrist.setPower(wristPowerPID);
                 //armPow = 0.6 + PIDControlArmUp(KpArmUp, KiArmUp, KdArmUp, referenceArmUp, potentiometerVoltage);
@@ -552,6 +555,10 @@ public class Drive extends OpMode {
         timer.reset();
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
+
+        if (Math.abs(output) > wristSpeedLimit) {
+            output = wristSpeedLimit;
+        }
         telemetry.addData("PIDOutPutWristDown", output);
         return output;
 
@@ -567,6 +574,11 @@ public class Drive extends OpMode {
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum2 *Ki);
         telemetry.addData("PIDOutputWristUp", output);
+
+        if (Math.abs(output) > wristSpeedLimit) {
+            output = -wristSpeedLimit;
+        }
+
         return output;
 
     }
