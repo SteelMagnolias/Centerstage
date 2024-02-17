@@ -465,6 +465,19 @@ public class Drive extends OpMode {
                     wrist.setPower(0);
                 }
 
+                if (Math.abs(lefty2) > 0.1) {
+                    verticalArm.setPower(lefty2 * 0.5);
+                    verticalArm2.setPower(lefty2 * 0.5);
+                }
+                else if (buttonup2) {
+                    verticalArm.setPower(-0.9);
+                    verticalArm2.setPower(-0.9);
+                }
+                else {
+                    verticalArm.setPower(0);
+                    verticalArm2.setPower(0);
+                }
+
 
                 // into another case
                 if (a2) {
@@ -489,20 +502,6 @@ public class Drive extends OpMode {
                     resetArmEncoders();
                 }*/
                 break;
-        }
-
-        // arm joystick - look into why etpark does not work
-        if (Math.abs(lefty2) > 0.1) {
-            verticalArm.setPower(lefty2 * 0.5);
-            verticalArm2.setPower(lefty2 * 0.5);
-        }
-        else if (buttonup2) {
-            verticalArm.setPower(-0.9);
-            verticalArm2.setPower(-0.9);
-        }
-        else {
-            verticalArm.setPower(0);
-            verticalArm2.setPower(0);
         }
 
 
