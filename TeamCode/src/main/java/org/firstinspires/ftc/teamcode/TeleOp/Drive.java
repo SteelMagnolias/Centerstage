@@ -65,7 +65,7 @@ public class Drive extends OpMode {
     double referenceArmUp = 5353;
     double referenceArmCurled = 10;
 
-    double KpWristDown = 0;
+    double KpWristDown = 0.1;
     double KiWristDown = 0;
     double KdWristDown = 0;
 
@@ -73,12 +73,12 @@ public class Drive extends OpMode {
     double KiWristTuck = 0;
     double KdWristTuck = 0;
 
-    double KpWristUp = -2.5;
+    double KpWristUp = 0.1;
     double KiWristUp = 0;
     double KdWristUp = 0;
-    // volts
-    double referenceWristDown = 3.307;
-    double referenceWristUp = 0.19;
+    // ticks
+    int referenceWristDown = 0;
+    int referenceWristUp = 215;
     double referenceWristTuck = 1.17;
     double wristSpeedLimit = 0.6;
 
@@ -180,6 +180,7 @@ public class Drive extends OpMode {
         double r_trig2 = gamepad2.right_trigger;
         double l_trig2 = gamepad2.left_trigger;
         boolean back2 = gamepad2.back;
+        boolean guide2 = gamepad2.guide;
 
         // sensor readings
         //potentiometerVoltage = potentiometer.getVoltage();
@@ -217,6 +218,8 @@ public class Drive extends OpMode {
         telemetry.addData("Other:", "Sensors");
         //telemetry.addData("potentiometerVoltage", potentiometerVoltage);
         telemetry.addData("armEncoder", verticalArm.getCurrentPosition());
+        telemetry.addData("wristEncoder", wrist.getCurrentPosition());
+        telemetry.addData("wristPow", wrist.getPower());
 
 
 
@@ -510,6 +513,10 @@ public class Drive extends OpMode {
             verticalArm2.setPower(0);
         }
 
+        if (guide2) { // reset in case of problem - press logitech logo
+            wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
 
         if (l_trig2 > 0.1) {
             intakeClawRight.setPower(1);
@@ -546,7 +553,7 @@ public class Drive extends OpMode {
         // throw plane from behind truss
     }
 
-    public double PIDControlWristDown(double Kp, double Ki, double Kd, double reference, double state){
+    public double PIDControlWristDown(double Kp, double Ki, double Kd, double reference, int state){
         double error = reference - state;
         integralSum += error * timer.seconds();
         double derivative = (error - lasterror ) / timer.seconds();
@@ -556,15 +563,20 @@ public class Drive extends OpMode {
 
         double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
 
-        if (Math.abs(output) > wristSpeedLimit) {
+
+        if (output > wristSpeedLimit) {
             output = wristSpeedLimit;
         }
+        else if (output < -wristSpeedLimit) {
+            output = -wristSpeedLimit;
+        }
+
         telemetry.addData("PIDOutPutWristDown", output);
         return output;
 
     }
 
-    public double PIDControlWristUp(double Kp, double Ki, double Kd, double reference, double state){
+    public double PIDControlWristUp(double Kp, double Ki, double Kd, double reference, int state){
         double error = reference - state;
         integralSum2 += error * timer2.seconds();
         double derivative = (error - lasterror2 ) / timer2.seconds();
@@ -575,7 +587,11 @@ public class Drive extends OpMode {
         double output = (error * Kp) + (derivative * Kd) + (integralSum2 *Ki);
         telemetry.addData("PIDOutputWristUp", output);
 
-        if (Math.abs(output) > wristSpeedLimit) {
+
+        if (output > wristSpeedLimit) {
+            output = wristSpeedLimit;
+        }
+        else if (output < -wristSpeedLimit) {
             output = -wristSpeedLimit;
         }
 
@@ -583,7 +599,7 @@ public class Drive extends OpMode {
 
     }
 
-    public double PIDControlArmUp(double Kp, double Ki, double Kd, double reference, double state){
+    public double PIDControlArmUp(double Kp, double Ki, double Kd, double reference, int state){
         double error = reference - state;
         integralSum3 += error * timer3.seconds();
         double derivative = (error - lasterror3 ) / timer3.seconds();
@@ -597,7 +613,7 @@ public class Drive extends OpMode {
 
     }
 
-    public double PIDControlArmDown(double Kp, double Ki, double Kd, double reference, double state){
+    public double PIDControlArmDown(double Kp, double Ki, double Kd, double reference, int state){
         double error = reference - state;
         integralSum4 += error * timer4.seconds();
         double derivative = (error - lasterror4 ) / timer4.seconds();
