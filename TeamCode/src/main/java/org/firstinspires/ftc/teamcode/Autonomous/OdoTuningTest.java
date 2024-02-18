@@ -159,6 +159,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 4);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 5: // rotate counter clockwise to 270 degrees
@@ -167,6 +168,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 5);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 6: // rotate counter clockwise to 360 degrees
@@ -175,6 +177,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 6);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 7: // rotate counter clockwise to 450 degrees (90), code doesn't reset when we go through a full circle
@@ -183,6 +186,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 7);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 8: // rotate clockwise to 540 degrees
@@ -191,6 +195,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 8);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 9: // rotate clocwise to 450 degrees
@@ -199,6 +204,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 9);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 10: // rotate clockwise to 360 degrees
@@ -207,6 +213,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 10);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             case 11: // rotate clockwise to 270 degrees
@@ -215,6 +222,7 @@ public class OdoTuningTest extends OpMode {
                     rotate(0);
                     step++;
                     RobotLog.d("Case: " + 11);
+                    telemetry.addData("Pose 2", Math.toDegrees(pose[2]) + " " + step);
                 }
                 break;
             default: // do nothing!

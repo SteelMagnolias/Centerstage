@@ -34,12 +34,18 @@ public class OdoRed extends OpMode {
     private CRServo intakeClawLeft;
 
 
-    // bot constraints:
-    double trackWidth = 20.5; //(cm)!
-    double yOffSet = -13.5; //(cm)!
-    double wheelRadius = 1.75; // centimeters!
-    double cpr = 8192; // counts per rotation!
-    double wheelCircumference = 2 * Math.PI * wheelRadius;
+    /// bot constraints:
+    double TRACK_WIDTH = 20; //(cm)!
+    double TRACK_WIDTH_DELTA = 0;
+    double Y_OFFSET = -13.5; //(cm)!
+    double Y_OFFSET_DELTA = 0;
+    double WHEEL_LEFT_DIAMETER = 3.469; // centimeters!
+    double WHEEL_RIGHT_DIAMETER = 3.315;
+    double WHEEL_BACK_DIAMETER = 3.471;
+    double CPR = 8192; // counts per rotation!
+    double WHEEL_CIRCUMFERENCE_LEFT = Math.PI * WHEEL_LEFT_DIAMETER;
+    double WHEEL_CIRCUMFERENCE_RIGHT = Math.PI * WHEEL_RIGHT_DIAMETER;
+    double WHEEL_CIRCUMFERENCE_BACK = Math.PI * WHEEL_BACK_DIAMETER;
 
     // current pose!
     double[] pose = {0,0,Math.toRadians(270)};
@@ -117,7 +123,7 @@ public class OdoRed extends OpMode {
         runOdometry();
 
         logCount++;
-        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
+        //RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
 
 
         switch(step) {
@@ -131,7 +137,7 @@ public class OdoRed extends OpMode {
                 //setPIDSettings(1,0,0); // set the kp, ki, and kd for forward movemement
                 //drivePID(0); // keep angle at 0 (moving forward in straight line)
                 break;
-            case 1: // strafe right!
+            case 1:
                 if (spikeMark == 1){
 
                 }
@@ -145,7 +151,7 @@ public class OdoRed extends OpMode {
             case 2: // strafe left towards airplanes // needs an adjust afterwards
                 strafe(-0.3);
                 if (location == 1){
-                    if (pose[0] <= -43){
+                    if (pose[0] <= -44){
                         strafe(0);
                         step++;
                     }
@@ -154,84 +160,91 @@ public class OdoRed extends OpMode {
 
                 }
                 break;
-            case 3: // drive forward to middle
+            case 3: // rotate until forward to avoid stacks
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(100)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 4: // drive forward to middle
                 drive(0.5);
-                if (pose[1] >= 112) {
+                if (pose[1] >= 115) {
                     drive(0);
                     step++;
                 }
 
                 break;
-            case 4: // strafe to not hit pixel stacks
+            case 5: // strafe to not hit pixel stacks
                 strafe(0.3);
                 if(pose[0] >=  0){
                     drive(0);
                     step++;
                 }
                 break;
-            case 5: // turn to go through truss
+            case 6: // turn to go through truss
                 rotate(0.3);
                 if(pose[2] <= Math.toRadians(0)){
                     rotate(0);
                     step++;
                 }
                 break;
-            case 6: // through stage door
+            case 7: // through stage door
                 drive(0.3);
                 if (pose [0] >= 180){
                     drive(0);
                     step++;
                 }
                 break;
-            case 7: // turn to face board
+            case 8: // turn to face board
                 rotate(0.3);
                 if (pose[2] <= Math.toRadians(-180)){
                     rotate (0);
                     step++;
                 }
                 break;
-            case 8://move in front of board
-                strafe (-0.3);
-                if (pose[1] >= 41){
+            case 9://move in front of board
+                strafe (0.3);
+                if (pose[1] <= 41){
                     strafe(0);
                     step++;
                 }
                 break;
-            case 9: // apriltag read
+            case 10: // apriltag read
                 step++;
                 break;
-            case 10: //arm up
+            case 11: //arm up
                 step++;
                 break;
-            case 11: // move in to board
+            case 12: // move in to board
                 drive(-0.3);
                 if(pose [0] >= 220){
                     drive (0);
                     step++;
                 }
                 break;
-            case 12:// place pixel
+            case 13:// place pixel
                 step++;
                 break;
-            case 13:
+            case 14:
                 drive(0.3);
                 if(pose [0] <= 180){
                     drive (0);
                     step++;
                 }
                 break;
-            case 14: //arm down
+            case 15: //arm down
                 step++;
                 break;
-            case 15:
-                strafe(0.3);
-                if  (pose[1] >= 102){
+            case 16:
+                strafe(-0.3);
+                if  (pose[1] <= 102){
                     strafe(0);
                     step++;
                 }
                 break;
-            case 16:
-                drive(-0.3);
+            case 17:
+                drive(0.3);
                 if (pose[0] >= 220){
                     drive(0);
                     step++;
@@ -267,20 +280,20 @@ public class OdoRed extends OpMode {
         double rawRightEncoder = -rightEncoder.getCurrentPosition();
         double rawBackEncoder = backEncoder.getCurrentPosition();
 
-        telemetry.addData("Raw Left", rawLeftEncoder);
+        /*telemetry.addData("Raw Left", rawLeftEncoder);
         telemetry.addData("Raw Right", rawRightEncoder);
-        telemetry.addData("Raw Back", rawBackEncoder);
+        telemetry.addData("Raw Back", rawBackEncoder);*/
 
-        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / cpr) * wheelCircumference;
-        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / cpr) * wheelCircumference;
-        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / cpr) * wheelCircumference;
+        double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / CPR) * WHEEL_CIRCUMFERENCE_LEFT;
+        double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / CPR) * WHEEL_CIRCUMFERENCE_RIGHT;
+        double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / CPR) * WHEEL_CIRCUMFERENCE_BACK;
 
-        telemetry.addData("Raw Left Change", rawChangeLeft);
+        /*telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Right Change", rawChangeRight);
-        telemetry.addData("Raw Back Change", rawChangeBack);
+        telemetry.addData("Raw Back Change", rawChangeBack);*/
 
         // find change in theta!
-        double deltaTheta = -(rawChangeLeft - rawChangeRight) / trackWidth;
+        double deltaTheta = -(rawChangeLeft - rawChangeRight) / (TRACK_WIDTH + TRACK_WIDTH_DELTA);
         telemetry.addData("deltaTheta", deltaTheta);
 
         // find change of x (center)!
@@ -288,7 +301,7 @@ public class OdoRed extends OpMode {
         telemetry.addData("xCenter", xCenter);
 
         // find change in x perpendicular!
-        double xPerp = rawChangeBack - (yOffSet * deltaTheta);
+        double xPerp = rawChangeBack - ((Y_OFFSET + Y_OFFSET_DELTA) * deltaTheta);
         telemetry.addData("xPerp", xPerp);
 
         /*
@@ -313,27 +326,11 @@ public class OdoRed extends OpMode {
         prevRightEncoder = rawRightEncoder;
         prevBackEncoder = rawBackEncoder;
 
-        telemetry.addData("prevLeftEncoder", rawChangeLeft);
+        /*telemetry.addData("prevLeftEncoder", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);
-        telemetry.addData("Raw Left Change", rawChangeLeft);
+        telemetry.addData("Raw Left Change", rawChangeLeft);*/
 
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    rawLeftEncoder: " + rawLeftEncoder);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    rawRightEncoder: " + rawRightEncoder);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    rawBackEncoder: " + rawBackEncoder);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    pose[0]: " + pose[0]);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    pose[1]: " + pose[1]);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    pose[2]: " + pose[2]);
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    ");
-
-        logCount++;
-        RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
+       // RobotLog.d("values: " + rawLeftEncoder + ", " + rawRightEncoder + ", " + rawBackEncoder + ", " + pose[0] + ", " + pose[1] + ", " + pose[2]);
     }
 
 
@@ -364,6 +361,7 @@ public class OdoRed extends OpMode {
 
     public void position2() {
         telemetry.addData("stackedStep", stackedStep);
+        RobotLog.d("Pose:" + pose[0] + "," + pose[1] + "," +  pose[2] + "Stacked Step: " + stackedStep);
         switch(stackedStep) {
             case 0:
                 rotate(0.3); // rotate 180 degrees to face spike mark 2
