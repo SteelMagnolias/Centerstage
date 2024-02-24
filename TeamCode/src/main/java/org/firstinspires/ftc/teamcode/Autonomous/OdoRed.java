@@ -81,7 +81,7 @@ public class OdoRed extends LinearOpMode {
     // auton step / action!
     int step = 0;
     int stackedStep = 0;
-    int spikeMark = 3;
+    int spikeMark = 0;
     int alliance=1;
     int location = 1;
     int logCount = 0;
@@ -148,7 +148,7 @@ public class OdoRed extends LinearOpMode {
             if (tfod != null && visionPortal.getCameraState().equals(CameraState.STREAMING)) {
                 switchCameras();
                 tfodtelemetry();
-                if (cameraTimer.milliseconds() <= 2000 || cameraTimer.milliseconds() >= 100) {
+                if (cameraTimer.milliseconds() <= 2000 && cameraTimer.milliseconds() >= 500) {
                     setSpikeMark();
                 }
                 telemetry.update();
@@ -651,6 +651,9 @@ public class OdoRed extends LinearOpMode {
             }
             visionPortal.resumeStreaming();
             cameraTimer.reset();
+        }
+        else {
+            telemetry.addLine("no camera change");
         }
     }
 }
