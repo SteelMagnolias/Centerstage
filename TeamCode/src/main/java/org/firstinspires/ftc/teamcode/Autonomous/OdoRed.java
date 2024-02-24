@@ -147,8 +147,8 @@ public class OdoRed extends LinearOpMode {
         while(!opModeIsActive() && !isStopRequested()) {
             if (tfod != null && visionPortal.getCameraState().equals(CameraState.STREAMING)) {
                 switchCameras();
-                if (cameraTimer.milliseconds() <= 1900 || cameraTimer.milliseconds() >= 100) {
-                    tfodtelemetry();
+                tfodtelemetry();
+                if (cameraTimer.milliseconds() <= 2000 || cameraTimer.milliseconds() >= 100) {
                     setSpikeMark();
                 }
                 telemetry.update();
@@ -613,6 +613,7 @@ public class OdoRed extends LinearOpMode {
                 telemetry.addLine("blue alliance (-1)");
             }
         }
+        currentRecognitions = null;
     }
 
     private void setSpikeMark(){
@@ -641,12 +642,14 @@ public class OdoRed extends LinearOpMode {
         numObDet = 0;
     }
     private void switchCameras() {
-        if (cameraTimer.milliseconds() >= 2000) {
+        if (cameraTimer.milliseconds() >= 2500) {
+            visionPortal.stopStreaming();
             if (visionPortal.getActiveCamera().equals(camera1)) {
                 visionPortal.setActiveCamera(camera2);
             } else if (visionPortal.getActiveCamera().equals(camera2)) {
                 visionPortal.setActiveCamera(camera1);
             }
+            visionPortal.resumeStreaming();
             cameraTimer.reset();
         }
     }
