@@ -58,10 +58,12 @@ public class OdoRed extends OpMode {
     // auton step / action!
     int step = 0;
     int stackedStep = 0;
-    int spikeMark = 2;
+    int spikeMark = 3;
     int location = 1;
 
     int logCount = 0;
+
+    double adjustablePow; // used to slow bot down when we get close to position in certain movements that need to be extra precise.
 
     @Override
     public void init() {
@@ -139,35 +141,53 @@ public class OdoRed extends OpMode {
                 break;
             case 1:
                 if (spikeMark == 1){
-
+                    position1();
                 }
                 else if (spikeMark == 2) {
                     position2();
                 }
                 else{
-
+                    position3();
                 }
                 break;
-            case 2: // strafe left towards airplanes // needs an adjust afterwards
-                strafe(-0.3);
-                if (location == 1){
-                    if (pose[0] <= -44){
-                        strafe(0);
-                        step++;
-                    }
+            case 2: // strafe left towards airplanes
+                if (pose[0] <= -34) {
+                    adjustablePow =  -0.2;
+                }
+                else {
+                    adjustablePow = -0.3;
+                }
+                strafe(adjustablePow);
+                if (pose[0] <= -44){
+                    strafe(0);
+                    step++;
                 }
                 else{
 
                 }
                 break;
             case 3: // rotate until forward to avoid stacks
-                rotate(0.3);
+                rotate(0.1);
                 if (pose[2] <= Math.toRadians(100)) {
                     rotate(0);
                     step++;
                 }
                 break;
-            case 4: // drive forward to middle
+            case 4: // drive forward to middle but stop around first spike mark for a readjust
+                drive (0.5);
+                if (pose[1] >= 60) {
+                    drive(0);
+                    step++;
+                }
+                break;
+            case 5: // rotate until forward to avoid stacks
+                rotate(0.1);
+                if (pose[2] <= Math.toRadians(100)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+            case 6: // drive forward to middle
                 drive(0.5);
                 if (pose[1] >= 115) {
                     drive(0);
@@ -175,75 +195,75 @@ public class OdoRed extends OpMode {
                 }
 
                 break;
-            case 5: // strafe to not hit pixel stacks
+            case 7: // strafe to not hit pixel stacks
                 strafe(0.3);
                 if(pose[0] >=  0){
                     drive(0);
                     step++;
                 }
                 break;
-            case 6: // turn to go through truss
+            case 8: // turn to go through truss
                 rotate(0.3);
                 if(pose[2] <= Math.toRadians(0)){
                     rotate(0);
                     step++;
                 }
                 break;
-            case 7: // through stage door
+            case 9: // through stage door
                 drive(0.3);
                 if (pose [0] >= 180){
                     drive(0);
                     step++;
                 }
                 break;
-            case 8: // turn to face board
+            case 10: // turn to face board
                 rotate(0.3);
-                if (pose[2] <= Math.toRadians(-180)){
+                if (pose[2] <= Math.toRadians(-190)){
                     rotate (0);
                     step++;
                 }
                 break;
-            case 9://move in front of board
-                strafe (0.3);
-                if (pose[1] <= 41){
+            case 11://move in front of board
+                strafe (-0.3);
+                if (pose[1] <= 30){
                     strafe(0);
                     step++;
                 }
                 break;
-            case 10: // apriltag read
+            case 12: // apriltag read
                 step++;
                 break;
-            case 11: //arm up
+            case 13: //arm up
                 step++;
                 break;
-            case 12: // move in to board
+            case 14: // move in to board
                 drive(-0.3);
                 if(pose [0] >= 220){
                     drive (0);
                     step++;
                 }
                 break;
-            case 13:// place pixel
+            case 15:// place pixel
                 step++;
                 break;
-            case 14:
+            case 16:
                 drive(0.3);
                 if(pose [0] <= 180){
                     drive (0);
                     step++;
                 }
                 break;
-            case 15: //arm down
+            case 17: //arm down
                 step++;
                 break;
-            case 16:
+            case 18:
                 strafe(-0.3);
                 if  (pose[1] <= 102){
                     strafe(0);
                     step++;
                 }
                 break;
-            case 17:
+            case 19:
                 drive(0.3);
                 if (pose[0] >= 220){
                     drive(0);
@@ -390,6 +410,100 @@ public class OdoRed extends OpMode {
                 if(pose[1] <= 10){
                     drive(0);
                     step++;
+                }
+                break;
+        }
+    }
+
+    public void position1() {
+        telemetry.addData("stackedStep", stackedStep);
+        RobotLog.d("Pose:" + pose[0] + "," + pose[1] + "," + pose[2] + "Stacked Step: " + stackedStep);
+        switch (stackedStep) {
+            case 0:
+                rotate(0.3); // rotate 90 degrees to face spike mark 1
+                if (pose[2] <= Math.toRadians(190)) {
+                    rotate(0);
+                    stackedStep++;
+                }
+                break;
+            case 1:
+                //arm stuff
+                stackedStep++;
+                break;
+            case 2:
+                strafe(0.3);
+                if (pose[1] >= 63) {
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 3:
+                drive(-0.2);
+                if (pose[0] >= -3) {
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 4:
+                //arm stuff
+                stackedStep++;
+                break;
+            case 5:
+                strafe(-0.3);
+                if (pose[1] <= 10) {
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 6:
+                rotate(0.3);
+                if (pose[2] <= Math.toRadians(100)) {
+                    rotate(0);
+                    step++;
+                }
+                break;
+        }
+    }
+
+    public void position3() {
+        telemetry.addData("stackedStep", stackedStep);
+        RobotLog.d("Pose:" + pose[0] + "," + pose[1] + "," +  pose[2] + "Stacked Step: " + stackedStep);
+        switch(stackedStep) {
+            case 0:
+                rotate(-0.3); // rotate 90 degrees to face spike mark 1
+                if (pose[2] >= Math.toRadians(350)) {
+                    rotate(0);
+                    stackedStep++;
+                }
+                break;
+            case 1:
+                //arm stuff
+                stackedStep++;
+                break;
+            case 2:
+                strafe(-0.3);
+                if (pose[1] >= 63){
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 3:
+                //arm stuff
+                stackedStep++;
+                break;
+            case 4:
+                strafe(0.3);
+                if(pose[1] <= 10){
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 5:
+                rotate(-0.3);
+                if (pose[2] >= Math.toRadians(440)) {
+                    rotate(0);
+                    step++;
+                    pose[2] -= (2 * Math.PI); // to get back to the normal circle
                 }
                 break;
         }

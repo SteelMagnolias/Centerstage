@@ -42,7 +42,7 @@ public class OdoTelemetry extends OpMode {
     double wheelCircumference = 2 * Math.PI * wheelRadius;
 
     // current pose!
-    double[] pose = {0,0,0};
+    double[] pose = {0,0, Math.toRadians(270)};
 
     // previous encoder positions!
     double prevLeftEncoder = 0;
@@ -168,7 +168,7 @@ public class OdoTelemetry extends OpMode {
         telemetry.addData("Raw Back Change", rawChangeBack);
 
         // find change in theta!
-        double deltaTheta = (rawChangeLeft - rawChangeRight) / trackWidth;
+        double deltaTheta = -(rawChangeLeft - rawChangeRight) / trackWidth;
         telemetry.addData("deltaTheta", deltaTheta);
 
         // find change of x (center)!
@@ -243,10 +243,10 @@ public class OdoTelemetry extends OpMode {
 
     public void rotate(double pow) {
         // rotate left or right counter clockwise
-        leftFront.setPower(-pow);
-        rightFront.setPower(pow);
-        leftBack.setPower(-pow);
-        rightBack.setPower(pow);
+        leftFront.setPower(pow);
+        rightFront.setPower(-pow);
+        leftBack.setPower(pow);
+        rightBack.setPower(-pow);
     }
 
     public void setTimer(double duration) {
