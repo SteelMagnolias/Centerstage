@@ -87,6 +87,34 @@ public class OdoRed extends LinearOpMode {
     int logCount = 0;
     double adjustablePow; // used to slow bot down when we get close to position in certain movements that need to be extra precise.
 
+    // PID stuff
+    double integralSum = 0;
+    double integralSum2 = 0;
+
+    double lasterror = 0;
+    double lasterror2 = 0;
+
+    ElapsedTime timer = new ElapsedTime();
+    ElapsedTime timer2 = new ElapsedTime();
+
+    double KpWristDown = 0.1;
+    double KiWristDown = 0;
+    double KdWristDown = 0;
+
+    double KpWristTuck = 0;
+    double KiWristTuck = 0;
+    double KdWristTuck = 0;
+
+    double KpWristUp = 0.1;
+    double KiWristUp = 0;
+    double KdWristUp = 0;
+    // ticks
+    int referenceWristDown = -131;
+    int referenceWristUp = 95;
+    double referenceWristTuck = 1.17;
+    double wristSpeedLimit = 0.6;
+    double wristPowerPID = 0;
+
     @Override
     public void runOpMode() throws InterruptedException {
         leftFront = hardwareMap.get(DcMotor.class, "leftFront");
@@ -95,6 +123,8 @@ public class OdoRed extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "rightBack");
 
         wrist = hardwareMap.get(DcMotor.class, "wrist");
+        wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         leftBack.setDirection(DcMotor.Direction.REVERSE );
 
@@ -128,6 +158,7 @@ public class OdoRed extends LinearOpMode {
 
         intakeClawRight = hardwareMap.get(CRServo.class, "intakeClawRight");
         intakeClawLeft = hardwareMap.get(CRServo.class, "intakeClawLeft");
+        intakeClawLeft.setDirection(CRServo.Direction.REVERSE);
 
         camera1 = hardwareMap.get(WebcamName.class, "Webcam 1");
         camera2 = hardwareMap.get(WebcamName.class, "Webcam 2");
@@ -162,8 +193,32 @@ public class OdoRed extends LinearOpMode {
 
         waitForStart();
         // repeating code - contains state machine!
+
+        telemetry.clearAll();
+
         while(!isStopRequested()){
             runOdometry();
+
+            // keep wrist in position when necessary
+            if (step >= 13 && step <= 16) {
+                wristPowerPID = PIDControlWristDown(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, wrist.getCurrentPosition());
+                wrist.setPower(wristPowerPID);
+            }
+            else if (stackedStep >= 1) {
+                wristPowerPID = PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, wrist.getCurrentPosition());
+                wrist.setPower(wristPowerPID);
+
+            }
+
+            // keep claws tight until their drops
+            if (step < 15) {
+                intakeClawLeft.setPower(0.5);
+            }
+
+            if ((spikeMark == 1 && stackedStep < 4) || (spikeMark == 2 && stackedStep < 3) || (spikeMark == 3 && stackedStep < 3)) {
+                intakeClawRight.setPower(0.5);
+            }
+
 
             logCount++;
             //RobotLog.d("LogCount: " + logCount + "    Coordinates: (" + pose[0] + ", " + pose[1] + ")");
@@ -181,12 +236,12 @@ public class OdoRed extends LinearOpMode {
                     //drivePID(0); // keep angle at 0 (moving forward in straight line)
                     break;
                 case 1:
-                    if (spikeMark == 1) {
-                        position1();
+                    if (spikeMark == 3) {
+                        position3();
                     } else if (spikeMark == 2) {
                         position2();
                     } else {
-                        position3();
+                        position1();
                     }
                     break;
                 case 2: // strafe left towards airplanes
@@ -239,20 +294,20 @@ public class OdoRed extends LinearOpMode {
                     break;
                 case 8: // turn to go through truss
                     rotate(0.3);
-                    if (pose[2] <= Math.toRadians(0)) {
+                    if (pose[2] <= Math.toRadians(10)) {
                         rotate(0);
                         step++;
                     }
                     break;
                 case 9: // through stage door
-                    drive(0.3);
+                    drive(0.8);
                     if (pose[0] >= 180) {
                         drive(0);
                         step++;
                     }
                     break;
                 case 10: // turn to face board
-                    rotate(0.3);
+                    rotate(0.8);
                     if (pose[2] <= Math.toRadians(-190)) {
                         rotate(0);
                         step++;
@@ -380,7 +435,7 @@ public class OdoRed extends LinearOpMode {
         telemetry.addData("Raw Left Change", rawChangeLeft);
         telemetry.addData("Raw Left Change", rawChangeLeft);*/
 
-       // RobotLog.d("values: " + rawLeftEncoder + ", " + rawRightEncoder + ", " + rawBackEncoder + ", " + pose[0] + ", " + pose[1] + ", " + pose[2]);
+        // RobotLog.d("values: " + rawLeftEncoder + ", " + rawRightEncoder + ", " + rawBackEncoder + ", " + pose[0] + ", " + pose[1] + ", " + pose[2]);
     }
 
 
@@ -418,27 +473,46 @@ public class OdoRed extends LinearOpMode {
                 if (pose[2] <= Math.toRadians(100)) {
                     rotate(0);
                     stackedStep++;
+                    verticalArm.setPower(-0.5);
+                    verticalArm.setPower(-0.5);
+                    sleep(1000);
                 }
                 break;
             case 1:
                 //arm stuff
+                verticalArm.setPower(0);
+                verticalArm2.setPower(0);
+
                 stackedStep++;
                 break;
             case 2:
                 drive(0.3);
-                if (pose[1] >= 63){
+                if (pose[1] >= 54){
                     drive(0);
                     stackedStep++;
                 }
                 break;
             case 3:
                 //arm stuff
+
+                intakeClawRight.setPower(-0.3);
+                sleep(500);
+                intakeClawRight.setPower(0.3);
+                sleep(500);
+                intakeClawRight.setPower(0);
                 stackedStep++;
                 break;
             case 4:
                 drive(-0.3);
                 if(pose[1] <= 10){
                     drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 5:
+                rotate(-0.3);
+                if (pose[2] >= Math.toRadians(80)) {
+                    rotate(0);
                     step++;
                 }
                 break;
@@ -454,10 +528,16 @@ public class OdoRed extends LinearOpMode {
                 if (pose[2] <= Math.toRadians(190)) {
                     rotate(0);
                     stackedStep++;
+                    verticalArm.setPower(-0.5);
+                    verticalArm.setPower(-0.5);
+                    sleep(1000);
                 }
                 break;
             case 1:
                 //arm stuff
+                verticalArm.setPower(0);
+                verticalArm2.setPower(0);
+
                 stackedStep++;
                 break;
             case 2:
@@ -476,6 +556,11 @@ public class OdoRed extends LinearOpMode {
                 break;
             case 4:
                 //arm stuff
+                intakeClawRight.setPower(-0.3);
+                sleep(500);
+                intakeClawRight.setPower(0.3);
+                sleep(500);
+                intakeClawRight.setPower(0);
                 stackedStep++;
                 break;
             case 5:
@@ -504,33 +589,64 @@ public class OdoRed extends LinearOpMode {
                 if (pose[2] >= Math.toRadians(350)) {
                     rotate(0);
                     stackedStep++;
+                    verticalArm.setPower(-0.5);
+                    verticalArm.setPower(-0.5);
+                    sleep(1000);
                 }
                 break;
             case 1:
-                //arm stuff
-                stackedStep++;
-                break;
-            case 2:
-                strafe(-0.3);
-                if (pose[1] >= 63){
+                drive(-0.3);
+                if (pose[0] <= -10) {
                     drive(0);
                     stackedStep++;
                 }
                 break;
-            case 3:
+            case 2:
                 //arm stuff
+                verticalArm.setPower(0);
+                verticalArm2.setPower(0);
                 stackedStep++;
                 break;
+            case 3:
+                strafe(-0.3);
+                if (pose[1] >= 67){
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
             case 4:
+                drive(0.3);
+                if (pose[0] >= 0) {
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 5:
+                //arm stuff
+                intakeClawRight.setPower(-0.3);
+                sleep(500);
+                intakeClawRight.setPower(0.3);
+                sleep(500);
+                intakeClawRight.setPower(0);
+                stackedStep++;
+                break;
+            case 6:
+                drive(-0.3);
+                if (pose[0] <= -10) {
+                    drive(0);
+                    stackedStep++;
+                }
+                break;
+            case 7:
                 strafe(0.3);
                 if(pose[1] <= 10){
                     drive(0);
                     stackedStep++;
                 }
                 break;
-            case 5:
+            case 8:
                 rotate(-0.3);
-                if (pose[2] >= Math.toRadians(440)) {
+                if (pose[2] >= Math.toRadians(425)) {
                     rotate(0);
                     step++;
                     pose[2] -= (2 * Math.PI); // to get back to the normal circle
@@ -538,6 +654,7 @@ public class OdoRed extends LinearOpMode {
                 break;
         }
     }
+
     //functions for cameras
     private void initTfod() {
         // start building custom tfod
@@ -617,27 +734,27 @@ public class OdoRed extends LinearOpMode {
     }
 
     private void setSpikeMark(){
-       if (numObDet == 1 && x != 0) {
-           // determine spike mark
-           if (visionPortal.getActiveCamera().equals(camera1)) {
-               if (x < 300) {
-                   spikeMark = 1;
-                   telemetry.addLine("Spike Mark Left-1");
-               } else if (x > 299) {
-                   spikeMark = 2;
-                   telemetry.addLine("Spike Mark Middle (Left)-2");
-               }
-           } else if (visionPortal.getActiveCamera().equals(camera2)) {
-               if (x < 300) {
-                   spikeMark = 2;
-                   telemetry.addLine("Spike Mark Middle (Right)-2");
-               } else if (x > 299) {
-                   spikeMark = 3;
-                   telemetry.addLine("Spike Mark Right-3");
-               }
-           }
-       }
-       telemetry.addData("spike Marker", spikeMark);
+        if (numObDet == 1 && x != 0) {
+            // determine spike mark
+            if (visionPortal.getActiveCamera().equals(camera1)) {
+                if (x < 300) {
+                    spikeMark = 1;
+                    telemetry.addLine("Spike Mark Left-1");
+                } else if (x > 299) {
+                    spikeMark = 2;
+                    telemetry.addLine("Spike Mark Middle (Left)-2");
+                }
+            } else if (visionPortal.getActiveCamera().equals(camera2)) {
+                if (x < 300) {
+                    spikeMark = 2;
+                    telemetry.addLine("Spike Mark Middle (Right)-2");
+                } else if (x > 299) {
+                    spikeMark = 3;
+                    telemetry.addLine("Spike Mark Right-3");
+                }
+            }
+        }
+        telemetry.addData("spike Marker", spikeMark);
         x = 0;
         numObDet = 0;
     }
@@ -655,5 +772,51 @@ public class OdoRed extends LinearOpMode {
         else {
             telemetry.addLine("no camera change");
         }
+    }
+
+    public double PIDControlWristDown(double Kp, double Ki, double Kd, double reference, int state){
+        double error = reference - state;
+        integralSum += error * timer.seconds();
+        double derivative = (error - lasterror ) / timer.seconds();
+        lasterror = error;
+
+        timer.reset();
+
+        double output = (error * Kp) + (derivative * Kd) + (integralSum *Ki);
+
+
+        if (output > wristSpeedLimit) {
+            output = wristSpeedLimit;
+        }
+        else if (output < -wristSpeedLimit) {
+            output = -wristSpeedLimit;
+        }
+
+        telemetry.addData("PIDOutPutWristDown", output);
+        return output;
+
+    }
+
+    public double PIDControlWristUp(double Kp, double Ki, double Kd, double reference, int state){
+        double error = reference - state;
+        integralSum2 += error * timer2.seconds();
+        double derivative = (error - lasterror2 ) / timer2.seconds();
+        lasterror2 = error;
+
+        timer2.reset();
+
+        double output = (error * Kp) + (derivative * Kd) + (integralSum2 *Ki);
+        telemetry.addData("PIDOutputWristUp", output);
+
+
+        if (output > wristSpeedLimit) {
+            output = wristSpeedLimit;
+        }
+        else if (output < -wristSpeedLimit) {
+            output = -wristSpeedLimit;
+        }
+
+        return output;
+
     }
 }
