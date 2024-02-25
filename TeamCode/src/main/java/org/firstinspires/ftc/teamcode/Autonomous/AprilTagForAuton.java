@@ -192,7 +192,6 @@ public class AprilTagForAuton extends LinearOpMode {
         //update telemetry
         telemetry.update();
     }
-
     private void initAprilTag(){
         //start duilding custom apriltag
         AprilTagProcessor.Builder builder = new AprilTagProcessor.Builder();

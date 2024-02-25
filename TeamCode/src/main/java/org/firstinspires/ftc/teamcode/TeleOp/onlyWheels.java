@@ -71,6 +71,8 @@ public class onlyWheels extends OpMode {
         telemetry.addData("y1", y1);
 
 
+
+        /*
         // wheels
         // if in turbo mode, full power, otherwise half
         if (a1) pow = 1; // turbo mode
@@ -167,24 +169,12 @@ public class onlyWheels extends OpMode {
             rightFront.setPower(-pow);
             rightBack.setPower(-pow);
         } else if (buttonRight1) {
-            // slowly moves right
-            leftFront.setPower(pow);
-            leftBack.setPower(-pow);
-            rightFront.setPower(-pow);
-            rightBack.setPower(pow);
-        } else if (buttonLeft1) {
-            // slowly moves left
-            leftFront.setPower(-pow);
-            leftBack.setPower(pow);
-            rightFront.setPower(pow);
-            rightBack.setPower(-pow);
-        } else if (rb1) {
             // rotate slowly right (clockwise)
             leftFront.setPower(pow);
             leftBack.setPower(pow);
             rightFront.setPower(-pow);
             rightBack.setPower(-pow);
-        } else if (lb1) {
+        } else if (buttonLeft1) {
             // rotate slowly left (counter-clockwise)
             leftFront.setPower(-pow);
             leftBack.setPower(-pow);
@@ -195,6 +185,6 @@ public class onlyWheels extends OpMode {
         // emergency stop
         if (b1 && y1) {
             stop();
-        }
+        }*/
     }
 }
