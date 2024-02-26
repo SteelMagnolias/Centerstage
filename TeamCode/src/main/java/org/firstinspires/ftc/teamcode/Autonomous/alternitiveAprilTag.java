@@ -53,15 +53,15 @@ public class alternitiveAprilTag extends LinearOpMode {
     int numObDet = 0;
     int numTagDet = 0;
     ElapsedTime cameraTimer = new ElapsedTime();
-    final double desiredDistance = 5;
+    final double desiredDistance = 4;
     double rangeError = -2;
-    double rangeBuffer = 2;
+    double rangeBuffer = 1.25;
     double headingError = -2;
-    double headingBuffer = 2;
+    double headingBuffer = 1.5;
     double yawError = -2;
     double yawBuffer = 2;
     boolean targetFound = false;
-    int spikeMark = 0;
+    int spikeMark = 3;
     private static int desiredTagID = 5;
     int alliance=1;
 
@@ -126,6 +126,9 @@ public class alternitiveAprilTag extends LinearOpMode {
         while (!isStopRequested()){
             apriltagTelemetry();
             List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            if (numTagDet == 0){
+                drive(0);
+            }
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.metadata != null) {
                     if ((desiredTagID == detection.id)) {
@@ -153,11 +156,17 @@ public class alternitiveAprilTag extends LinearOpMode {
                 driveToTag();
             } else {
                 drive(0);
+                telemetry.addLine("tag not found");
             }
             if (rangeError > -rangeBuffer && rangeError < rangeBuffer && yawError > -yawBuffer && yawError < yawBuffer && headingError > -headingBuffer && headingError < headingBuffer){
                 drive(0);
+                telemetry.addLine("lined up to tag");
                 //step++;
             }
+            headingError = 0;
+            yawError = 0;
+            rangeError = 0;
+            targetFound = false;
         }
 
     }
@@ -331,32 +340,32 @@ public class alternitiveAprilTag extends LinearOpMode {
     }
 
     private void driveToTag (){
-        double slow = 0.2;
-        double medium = 0.4;
+        double slow = 0.15;
+        double medium = 0.3;
         if (yawError > yawBuffer && visionPortal.getActiveCamera().equals(camera1)){
-            customDrive(0, -slow, 0, -slow);
+            customDrive(-slow, 0, -slow, 0);
         } else if (yawError < -yawBuffer && visionPortal.getActiveCamera().equals(camera1)) {
-            customDrive(0, slow, 0, slow);
+            customDrive(slow, 0, slow, 0);
         } else if (yawError > yawBuffer && visionPortal.getActiveCamera().equals(camera2)){
-            customDrive(-slow, 0, -slow, -0);
+            customDrive(0, slow, 0, slow);
         } else if (yawError < -yawBuffer && visionPortal.getActiveCamera().equals(camera2)) {
-            customDrive(slow, 0, slow, -0);
-        } else if ( headingError > headingBuffer+2){
-            customDrive(-medium, medium, -medium, medium);
-        } else if (headingError < -headingBuffer-2){
-            customDrive(medium, -medium, medium, -medium);
+            customDrive(0, -slow, 0, -slow);
+        } else if ( headingError > headingBuffer+3){
+            customDrive(medium, -medium, -medium, medium);
+        } else if (headingError < -headingBuffer-3){
+            customDrive(-medium, medium, medium, -medium);
         } else if ( headingError > headingBuffer){
-            customDrive(-slow, slow, -slow, slow);
+            customDrive(slow, -slow, -slow, slow);
         } else if (headingError < -headingBuffer){
-            customDrive(slow, -slow, slow, -slow);
-        } else if (rangeError > rangeBuffer+2){
-            customDrive(medium, medium, medium, medium);
-        } else if (rangeError < -rangeBuffer-2) {
+            customDrive(-slow, slow, slow, -slow);
+        } else if (rangeError > rangeBuffer+3){
             customDrive(-medium, -medium, -medium, -medium);
+        } else if (rangeError < -rangeBuffer-3) {
+            customDrive(medium, medium, medium, medium);
         } else if (rangeError > rangeBuffer){
-            customDrive(slow, slow, slow, slow);
-        } else if (rangeError < -rangeBuffer){
             customDrive(-slow, -slow, -slow, -slow);
+        } else if (rangeError < -rangeBuffer){
+            customDrive(slow, slow, slow, slow);
         }
     }
 }

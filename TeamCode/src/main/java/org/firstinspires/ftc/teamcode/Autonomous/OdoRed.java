@@ -15,6 +15,13 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.VisionPortal.CameraState;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 import java.util.List;
 import android.util.Size;
 
@@ -46,15 +53,18 @@ public class OdoRed extends LinearOpMode {
 
     //camera variables
     private TfodProcessor tfod;
+    private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
     private static final String TFOD_MODEL_ASSET = "CenterstageHeartTraining2.tflite";
     private static final String[] LABELS = {
             "heartBlue",
             "heartRed"
     };
+    private AprilTagDetection desiredTag = null;
     double x;
     double y;
     int numObDet = 0;
+    int numTagDet = 0;
     ElapsedTime cameraTimer = new ElapsedTime();
 
     // bot constraints:
@@ -81,7 +91,17 @@ public class OdoRed extends LinearOpMode {
     // auton step / action!
     int step = 0;
     int stackedStep = 0;
-    int spikeMark = 0;
+    final double desiredDistance = 4;
+    double rangeError = -2;
+    double rangeBuffer = 1.25;
+    double headingError = -2;
+    double headingBuffer = 1.5;
+    double yawError = -2;
+    double yawBuffer = 2;
+    boolean targetFound = false;
+    int spikeMark = 1;
+    private static int desiredTagID = 5;
+
     int alliance=1;
     int location = 1;
     int logCount = 0;
@@ -174,7 +194,8 @@ public class OdoRed extends LinearOpMode {
 
         cameraTimer.reset();
 
-        initTfod();
+        initCameras();
+        visionPortal.getProcessorEnabled(tfod);
         while(!opModeIsActive() && !isStopRequested()) {
             if (tfod != null && visionPortal.getCameraState().equals(CameraState.STREAMING)) {
                 switchCameras();
@@ -182,6 +203,7 @@ public class OdoRed extends LinearOpMode {
                 if (cameraTimer.milliseconds() <= 2000 && cameraTimer.milliseconds() >= 500) {
                     setSpikeMark();
                 }
+                telemetry.addData("spike mark", spikeMark);
                 telemetry.update();
             }
             else {
@@ -192,17 +214,28 @@ public class OdoRed extends LinearOpMode {
         }
 
         waitForStart();
-        // repeating code - contains state machine!
-
         telemetry.clearAll();
 
+        visionPortal.getProcessorEnabled(aprilTag);
+        if (spikeMark == 3){
+            visionPortal.setActiveCamera(camera1);
+            desiredTagID = 5;
+        } else if (spikeMark == 2) {
+            visionPortal.setActiveCamera(camera2);
+            desiredTagID = 6;
+        } else{
+            visionPortal.setActiveCamera(camera2);
+            desiredTagID = 5;
+        }
+
+        // repeating code - contains state machine!
         while(!isStopRequested()){
             runOdometry();
 
             // keep wrist in position when necessary
-            if (step >= 13 && step <= 16) {
+            if (step >= 12 && step <= 15) {
                 wristPowerPID = PIDControlWristDown(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, wrist.getCurrentPosition());
-                wrist.setPower(wristPowerPID);
+                wrist.setPower(0); // pid was being weird and i dont know enough to attempt to fix it
             }
             else if (stackedStep >= 1) {
                 wristPowerPID = PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, wrist.getCurrentPosition());
@@ -293,72 +326,112 @@ public class OdoRed extends LinearOpMode {
                     }
                     break;
                 case 8: // turn to go through truss
-                    rotate(0.3);
-                    if (pose[2] <= Math.toRadians(10)) {
+                    rotate(0.7);
+                    if (pose[2] <= Math.toRadians(20)) {
                         rotate(0);
                         step++;
                     }
                     break;
                 case 9: // through stage door
-                    drive(0.8);
-                    if (pose[0] >= 180) {
+                    drive(0.9);
+                    if (pose[0] >= 175) {
                         drive(0);
                         step++;
                     }
                     break;
                 case 10: // turn to face board
-                    rotate(0.8);
+                    rotate(0.9);
                     if (pose[2] <= Math.toRadians(-190)) {
                         rotate(0);
                         step++;
                     }
                     break;
                 case 11://move in front of board
-                    strafe(-0.3);
-                    if (pose[1] <= 30) {
+                    strafe(-0.4);
+                    if (pose[1] <= 40) {
                         strafe(0);
                         step++;
                     }
                     break;
-                case 12: // apriltag read
+                case 12: //arm up
+                    verticalArm.setPower(-1);
+                    verticalArm2.setPower(-1);
+                    sleep(1000);
+                    verticalArm2.setPower(-0.05);
+                    verticalArm.setPower(-0.05);
                     step++;
+                    if (step == 13){
+                        cameraTimer.reset();
+                    }
                     break;
-                case 13: //arm up
-                    step++;
-                    break;
-                case 14: // move in to board
-                    drive(-0.3);
-                    if (pose[0] >= 220) {
+                case 13: // apriltag read
+                    if (cameraTimer.milliseconds() >= 10000){
                         drive(0);
                         step++;
                     }
+                    apriltagTelemetry();
+                    List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+                    if (numTagDet == 0){
+                        drive(0);
+                    }
+                    for (AprilTagDetection detection : currentDetections) {
+                        if (detection.metadata != null) {
+                            if ((desiredTagID == detection.id)) {
+                                targetFound = true;
+                                desiredTag = detection;
+                                break;
+                            } else {
+                                telemetry.addLine("Not the right tag");
+                                targetFound = false;
+                            }
+                        } else {
+                            telemetry.addLine("cant find tag id");
+                            targetFound = false;
+                        }
+                    }
+                    if (targetFound == true) {
+                        rangeError = (desiredTag.ftcPose.range - desiredDistance);
+                        headingError = (desiredTag.ftcPose.bearing);
+                        yawError = desiredTag.ftcPose.yaw;
+
+                        telemetry.addData("range error", rangeError);
+                        telemetry.addData("heading error", headingError);
+                        telemetry.addData("yaw error", yawError);
+
+                        driveToTag();
+
+                        if (rangeError > -rangeBuffer && rangeError < rangeBuffer && yawError > -yawBuffer && yawError < yawBuffer && headingError > -headingBuffer && headingError < headingBuffer){
+                            drive(0);
+                            telemetry.addLine("lined up to tag");
+                            step++;
+                        }
+                    } else {
+                        strafe(-0.35);
+                        telemetry.addLine("tag not found");
+                    }
+
+                    headingError = 0;
+                    yawError = 0;
+                    rangeError = 0;
+                    targetFound = false;
                     break;
-                case 15:// place pixel
+                case 14:// place pixel
+                    intakeClawLeft.setPower(-1);
+                    sleep(450);
+                    intakeClawLeft.setPower(0);
+                    sleep(100);
+                    intakeClawLeft.setPower(1);
+                    sleep(450);
+                    intakeClawLeft.setPower(0);
                     step++;
                     break;
-                case 16:
-                    drive(0.3);
-                    if (pose[0] <= 180) {
-                        drive(0);
-                        step++;
-                    }
-                    break;
-                case 17: //arm down
+                case 15: //arm down
+                    verticalArm.setPower(0.7);
+                    verticalArm2.setPower(0.7);
+                    sleep(1500);
+                    verticalArm2.setPower(0);
+                    verticalArm.setPower(0);
                     step++;
-                    break;
-                case 18:
-                    strafe(-0.3);
-                    if (pose[1] <= 102) {
-                        strafe(0);
-                        step++;
-                    }
-                    break;
-                case 19:
-                    drive(0.3);
-                    if (pose[0] >= 220) {
-                        drive(0);
-                        step++;
-                    }
                     break;
                 default: // do nothing!
                     drive(0);
@@ -462,6 +535,13 @@ public class OdoRed extends LinearOpMode {
         rightFront.setPower(-pow);
         leftBack.setPower(pow);
         rightBack.setPower(-pow);
+    }
+    public void customDrive(double lf, double rf, double lb, double rb) {
+        // rotate left or right counter clockwise
+        leftFront.setPower(lf);
+        rightFront.setPower(rf);
+        leftBack.setPower(lb);
+        rightBack.setPower(rb);
     }
 
     public void position2() {
@@ -656,47 +736,38 @@ public class OdoRed extends LinearOpMode {
     }
 
     //functions for cameras
-    private void initTfod() {
-        // start building custom tfod
+    private void initCameras() {
         TfodProcessor.Builder builder = new TfodProcessor.Builder();
-        //custom training model file import
         builder.setModelAssetName(TFOD_MODEL_ASSET);
-        //get names of objects
         builder.setModelLabels(LABELS);
-        // verifies the type of tensor flow model???? not really sure
         builder.setIsModelTensorFlow2(true);
-        // no clue
         builder.setIsModelQuantized(true);
-        // how many minutes of model will be used.
         builder.setModelInputSize(300);
-        //set camera aspect ratio
         builder.setModelAspectRatio(16.0 / 9.0);
-        //make custom tfod
         tfod = builder.build();
 
-        //start building custom vision portal
-        VisionPortal.Builder builder2 = new VisionPortal.Builder();
-        //pick a camera
+        AprilTagProcessor.Builder builder2 = new AprilTagProcessor.Builder();
+        builder2.setDrawAxes(true);
+        builder2.setDrawCubeProjection(false);
+        builder2.setDrawTagOutline(true);
+        builder2.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11);
+        builder2.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary());
+        builder2.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES);
+        aprilTag = builder2.build();
+
+        VisionPortal.Builder builder3 = new VisionPortal.Builder();
         CameraName switchableCamera = ClassFactory.getInstance()
                 .getCameraManager().nameForSwitchableCamera(camera1, camera2);
-        builder2.setCamera(switchableCamera);
-        // set camera resolution
-        //this one already has pre calibrated apriltag info
-        builder2.setCameraResolution(new Size(640, 480));
-        //allow you to see the camera feed on driver hub
-        builder2.enableLiveView(true);
-        // streaming bandwidth
-        builder2.setStreamFormat(VisionPortal.StreamFormat.YUY2);
-        // don't auto stop camera feed
-        builder2.setAutoStopLiveView(false);
-        //add custom tfod to vision portal
-        builder2.addProcessor(tfod);
-        //build vision portal
-        visionPortal = builder2.build();
-        //must be at least 75% confident to display data
+        builder3.setCamera(switchableCamera);
+        builder3.setCameraResolution(new Size(640, 480));
+        builder3.enableLiveView(true);
+        builder3.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+        builder3.setAutoStopLiveView(false);
+        builder3.addProcessor(tfod);
+        builder3.addProcessor(aprilTag);
+        visionPortal = builder3.build();
         tfod.setMinResultConfidence(0.75f);
 
-        //processor is on
         visionPortal.setProcessorEnabled(tfod, true);
         telemetry.addData("camera state", visionPortal.getCameraState());
     }
@@ -754,7 +825,6 @@ public class OdoRed extends LinearOpMode {
                 }
             }
         }
-        telemetry.addData("spike Marker", spikeMark);
         x = 0;
         numObDet = 0;
     }
@@ -771,6 +841,61 @@ public class OdoRed extends LinearOpMode {
         }
         else {
             telemetry.addLine("no camera change");
+        }
+    }
+
+    private void apriltagTelemetry (){
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        telemetry.addData("# AprilTags Detected", currentDetections.size());
+        numTagDet = currentDetections.size();
+
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.metadata != null) {
+                telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+            }
+            else {
+                telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
+                telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+            }
+        }
+
+        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
+        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        telemetry.addLine("RBE = Range, Bearing & Elevation");
+
+        telemetry.update();
+    }
+
+    private void driveToTag (){
+        double slow = 0.15;
+        double medium = 0.3;
+        if (yawError > yawBuffer && visionPortal.getActiveCamera().equals(camera1)){
+            customDrive(-slow, 0, -slow, 0);
+        } else if (yawError < -yawBuffer && visionPortal.getActiveCamera().equals(camera1)) {
+            customDrive(slow, 0, slow, 0);
+        } else if (yawError > yawBuffer && visionPortal.getActiveCamera().equals(camera2)){
+            customDrive(0, slow, 0, slow);
+        } else if (yawError < -yawBuffer && visionPortal.getActiveCamera().equals(camera2)) {
+            customDrive(0, -slow, 0, -slow);
+        } else if ( headingError > headingBuffer+3){
+            customDrive(medium, -medium, -medium, medium);
+        } else if (headingError < -headingBuffer-3){
+            customDrive(-medium, medium, medium, -medium);
+        } else if ( headingError > headingBuffer){
+            customDrive(slow, -slow, -slow, slow);
+        } else if (headingError < -headingBuffer){
+            customDrive(-slow, slow, slow, -slow);
+        } else if (rangeError > rangeBuffer+3){
+            customDrive(-medium, -medium, -medium, -medium);
+        } else if (rangeError < -rangeBuffer-3) {
+            customDrive(medium, medium, medium, medium);
+        } else if (rangeError > rangeBuffer){
+            customDrive(-slow, -slow, -slow, -slow);
+        } else if (rangeError < -rangeBuffer){
+            customDrive(slow, slow, slow, slow);
         }
     }
 
