@@ -453,22 +453,15 @@ public class OdoRed extends LinearOpMode {
         // x direction is horizontal is parallel to driver station
         // y direction is perpendicular to driver station
 
-        // distance wheel turns in cm!
+        // find current encoder ticks
         double rawLeftEncoder = -leftEncoder.getCurrentPosition();
         double rawRightEncoder = -rightEncoder.getCurrentPosition();
         double rawBackEncoder = backEncoder.getCurrentPosition();
 
-        /*telemetry.addData("Raw Left", rawLeftEncoder);
-        telemetry.addData("Raw Right", rawRightEncoder);
-        telemetry.addData("Raw Back", rawBackEncoder);*/
-
+        // convert change in position in centimeters!
         double rawChangeLeft = ((rawLeftEncoder - prevLeftEncoder) / CPR) * WHEEL_CIRCUMFERENCE_LEFT;
         double rawChangeRight = ((rawRightEncoder - prevRightEncoder) / CPR) * WHEEL_CIRCUMFERENCE_RIGHT;
         double rawChangeBack = ((rawBackEncoder - prevBackEncoder) / CPR) * WHEEL_CIRCUMFERENCE_BACK;
-
-        /*telemetry.addData("Raw Left Change", rawChangeLeft);
-        telemetry.addData("Raw Right Change", rawChangeRight);
-        telemetry.addData("Raw Back Change", rawChangeBack);*/
 
         // find change in theta!
         double deltaTheta = -(rawChangeLeft - rawChangeRight) / (TRACK_WIDTH + TRACK_WIDTH_DELTA);
@@ -481,12 +474,6 @@ public class OdoRed extends LinearOpMode {
         // find change in x perpendicular!
         double xPerp = rawChangeBack - ((Y_OFFSET + Y_OFFSET_DELTA) * deltaTheta);
         telemetry.addData("xPerp", xPerp);
-
-        /*
-        NOTICE - yChange and xChange (below) are swapped from GM0
-        This is because in GM0, they swap the x and y axis
-        I wanted it to be like a normal graph
-         */
 
         //find change in x!
         double xChange = xCenter * Math.cos(pose[2]) - xPerp * Math.sin(pose[2]);
@@ -503,10 +490,6 @@ public class OdoRed extends LinearOpMode {
         prevLeftEncoder = rawLeftEncoder;
         prevRightEncoder = rawRightEncoder;
         prevBackEncoder = rawBackEncoder;
-
-        /*telemetry.addData("prevLeftEncoder", rawChangeLeft);
-        telemetry.addData("Raw Left Change", rawChangeLeft);
-        telemetry.addData("Raw Left Change", rawChangeLeft);*/
 
         // RobotLog.d("values: " + rawLeftEncoder + ", " + rawRightEncoder + ", " + rawBackEncoder + ", " + pose[0] + ", " + pose[1] + ", " + pose[2]);
     }
