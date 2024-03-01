@@ -99,12 +99,15 @@ public class OdoRed extends LinearOpMode {
     double yawError = -2;
     double yawBuffer = 2;
     boolean targetFound = false;
+    boolean tagWasSeen = false;
     int spikeMark = 1;
     private static int desiredTagID = 5;
+    private static int OTID = 0;
 
     int alliance=1;
     int location = 1;
     int logCount = 0;
+    ElapsedTime armTimer = new ElapsedTime();
     double adjustablePow; // used to slow bot down when we get close to position in certain movements that need to be extra precise.
 
     // PID stuff
@@ -227,15 +230,16 @@ public class OdoRed extends LinearOpMode {
             visionPortal.setActiveCamera(camera2);
             desiredTagID = 5;
         }
+       cameraTimer.reset();
 
         // repeating code - contains state machine!
         while(!isStopRequested()){
             runOdometry();
 
             // keep wrist in position when necessary
-            if (step >= 12 && step <= 15) {
+            if (step == 11 || step == 12) {
                 wristPowerPID = PIDControlWristDown(KpWristUp, KiWristUp, KdWristUp, referenceWristUp, wrist.getCurrentPosition());
-                wrist.setPower(0); // pid was being weird and i dont know enough to attempt to fix it
+                wrist.setPower(wristPowerPID); // pid was being weird and i dont know enough to attempt to fix it
             }
             else if (stackedStep >= 1) {
                 wristPowerPID = PIDControlWristDown(KpWristDown, KiWristDown, KdWristDown, referenceWristDown, wrist.getCurrentPosition());
@@ -244,7 +248,7 @@ public class OdoRed extends LinearOpMode {
             }
 
             // keep claws tight until their drops
-            if (step < 15) {
+            if (step <= 11) {
                 intakeClawLeft.setPower(0.5);
             }
 
@@ -326,49 +330,36 @@ public class OdoRed extends LinearOpMode {
                     }
                     break;
                 case 8: // turn to go through truss
-                    rotate(0.7);
-                    if (pose[2] <= Math.toRadians(20)) {
+                    rotate(-0.65);
+                    if (pose[2] >= Math.toRadians(160)) {
                         rotate(0);
                         step++;
                     }
                     break;
                 case 9: // through stage door
-                    drive(0.9);
-                    if (pose[0] >= 175) {
+                    drive(-0.9);
+                    if (pose[0] >= 190) {
                         drive(0);
                         step++;
                     }
                     break;
-                case 10: // turn to face board
-                    rotate(0.9);
-                    if (pose[2] <= Math.toRadians(-190)) {
-                        rotate(0);
-                        step++;
-                    }
-                    break;
-                case 11://move in front of board
-                    strafe(-0.4);
-                    if (pose[1] <= 40) {
-                        strafe(0);
-                        step++;
-                    }
-                    break;
-                case 12: //arm up
+                case 10: //arm up
                     verticalArm.setPower(-1);
                     verticalArm2.setPower(-1);
-                    sleep(1000);
-                    verticalArm2.setPower(-0.05);
-                    verticalArm.setPower(-0.05);
+                    armTimer.reset();
+                    targetFound = false;
                     step++;
-                    if (step == 13){
-                        cameraTimer.reset();
-                    }
                     break;
-                case 13: // apriltag read
-                    if (cameraTimer.milliseconds() >= 10000){
+                case 11: // apriltag read
+                    if (armTimer.milliseconds() >= 750){
+                        verticalArm2.setPower(-0.05);
+                        verticalArm.setPower(-0.05);
+                    }
+                    if (cameraTimer.milliseconds() >= 28000){
                         drive(0);
                         step++;
                     }
+                    drive(0);
                     apriltagTelemetry();
                     List<AprilTagDetection> currentDetections = aprilTag.getDetections();
                     if (numTagDet == 0){
@@ -378,18 +369,20 @@ public class OdoRed extends LinearOpMode {
                         if (detection.metadata != null) {
                             if ((desiredTagID == detection.id)) {
                                 targetFound = true;
+                                tagWasSeen = true;
                                 desiredTag = detection;
                                 break;
                             } else {
                                 telemetry.addLine("Not the right tag");
                                 targetFound = false;
+                                OTID = detection.id;
                             }
                         } else {
                             telemetry.addLine("cant find tag id");
                             targetFound = false;
                         }
                     }
-                    if (targetFound == true) {
+                    if (targetFound) {
                         rangeError = (desiredTag.ftcPose.range - desiredDistance);
                         headingError = (desiredTag.ftcPose.bearing);
                         yawError = desiredTag.ftcPose.yaw;
@@ -406,7 +399,17 @@ public class OdoRed extends LinearOpMode {
                             step++;
                         }
                     } else {
-                        strafe(-0.35);
+                        if (OTID == 4 && desiredTagID == 5) {
+                            strafe(-0.35);
+                        } else if (OTID == 6 && desiredTagID == 5) {
+                            strafe(0.35);
+                        } else if ((OTID == 5 || OTID == 4) && desiredTagID == 6){
+                            strafe(-0.35);
+                        } else if (!tagWasSeen){
+                            strafe(-0.35);
+                        } else{
+                            strafe(0.35);
+                        }
                         telemetry.addLine("tag not found");
                     }
 
@@ -415,7 +418,7 @@ public class OdoRed extends LinearOpMode {
                     rangeError = 0;
                     targetFound = false;
                     break;
-                case 14:// place pixel
+                case 12:// place pixel
                     intakeClawLeft.setPower(-1);
                     sleep(450);
                     intakeClawLeft.setPower(0);
@@ -423,15 +426,17 @@ public class OdoRed extends LinearOpMode {
                     intakeClawLeft.setPower(1);
                     sleep(450);
                     intakeClawLeft.setPower(0);
+                    armTimer.reset();
                     step++;
                     break;
-                case 15: //arm down
+                case 13: //arm down
                     verticalArm.setPower(0.7);
                     verticalArm2.setPower(0.7);
-                    sleep(1500);
-                    verticalArm2.setPower(0);
-                    verticalArm.setPower(0);
-                    step++;
+                    if (armTimer.milliseconds() >= 750) {
+                        verticalArm2.setPower(0);
+                        verticalArm.setPower(0);
+                        step++;
+                    }
                     break;
                 default: // do nothing!
                     drive(0);
