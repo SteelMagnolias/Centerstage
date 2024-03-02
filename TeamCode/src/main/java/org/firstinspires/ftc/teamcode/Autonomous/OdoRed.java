@@ -66,6 +66,7 @@ public class OdoRed extends LinearOpMode {
     int numObDet = 0;
     int numTagDet = 0;
     ElapsedTime cameraTimer = new ElapsedTime();
+    ElapsedTime cameraTimer2 = new ElapsedTime();
 
     // bot constraints:
     double TRACK_WIDTH = 20; //(cm)!
@@ -93,14 +94,14 @@ public class OdoRed extends LinearOpMode {
     int stackedStep = 0;
     final double desiredDistance = 3.5;
     double rangeError = -2;
-    double rangeBuffer = 1.5;
+    double rangeBuffer = 3;
     double headingError = -2;
     double headingBuffer = 1.5;
     double yawError = -2;
     double yawBuffer = 2;
     boolean targetFound = false;
     boolean tagWasSeen = false;
-    int spikeMark = 1;
+    int spikeMark = 3;
     private static int desiredTagID = 5;
     private static int OTID = 0;
 
@@ -273,12 +274,12 @@ public class OdoRed extends LinearOpMode {
                     //drivePID(0); // keep angle at 0 (moving forward in straight line)
                     break;
                 case 1:
-                    if (spikeMark == 3) {
-                        position3();
+                    if (spikeMark == 1) {
+                        position1();
                     } else if (spikeMark == 2) {
                         position2();
                     } else {
-                        position1();
+                        position3();
                     }
                     break;
                 case 2: // strafe left towards airplanes
@@ -331,13 +332,16 @@ public class OdoRed extends LinearOpMode {
                     break;
                 case 8: // turn to go through truss
                     rotate(-0.65);
-                    if (pose[2] >= Math.toRadians(160)) {
+                    if(spikeMark == 3 && pose[2] >= Math.toRadians(135)){
+                        rotate(0);
+                        step++;
+                    }else if (pose[2] >= Math.toRadians(160) && (spikeMark == 1 || spikeMark == 2)) {
                         rotate(0);
                         step++;
                     }
                     break;
                 case 9: // through stage door
-                    drive(-0.9);
+                    drive(-0.95);
                     if (pose[0] >= 190) {
                         drive(0);
                         step++;
@@ -347,11 +351,12 @@ public class OdoRed extends LinearOpMode {
                     verticalArm.setPower(-1);
                     verticalArm2.setPower(-1);
                     armTimer.reset();
+                    cameraTimer2.reset();
                     targetFound = false;
                     step++;
                     break;
                 case 11: // apriltag read
-                    if (armTimer.milliseconds() >= 750){
+                    if (armTimer.milliseconds() >= 1000){
                         verticalArm2.setPower(-0.05);
                         verticalArm.setPower(-0.05);
                     }
@@ -399,7 +404,12 @@ public class OdoRed extends LinearOpMode {
                     } else if (!tagWasSeen){
                         strafe(-0.35);
                     } else {
-                        if (OTID == 4 && desiredTagID == 5) {
+                        if (cameraTimer2.milliseconds() >= 4500){
+                            cameraTimer2.reset();
+                        }
+                        if (cameraTimer2.milliseconds() >= 3500 ) {
+                            rotate(0.3);
+                        } else if (OTID == 4 && desiredTagID == 5) {
                             strafe(-0.35);
                         } else if (OTID == 6 && desiredTagID == 5) {
                             strafe(0.35);
@@ -875,18 +885,14 @@ public class OdoRed extends LinearOpMode {
             customDrive(medium, -medium, -medium, medium);
         } else if (headingError < -headingBuffer-3){
             customDrive(-medium, medium, medium, -medium);
-        } else if ( headingError > headingBuffer){
-            customDrive(slow, -slow, -slow, slow);
-        } else if (headingError < -headingBuffer){
-            customDrive(-slow, slow, slow, -slow);
-        } else if (rangeError > rangeBuffer+3){
-            customDrive(-medium, -medium, -medium, -medium);
-        } else if (rangeError < -rangeBuffer-3) {
-            customDrive(medium, medium, medium, medium);
         } else if (rangeError > rangeBuffer){
-            customDrive(-slow, -slow, -slow, -slow);
-        } else if (rangeError < -rangeBuffer){
-            customDrive(slow, slow, slow, slow);
+            customDrive(-medium, -medium, -medium, -medium);
+        } else if (rangeError < -rangeBuffer) {
+            customDrive(medium, medium, medium, medium);
+        }else if ( headingError > headingBuffer){
+            customDrive(slow, -slow, -slow, slow);
+        } else if (headingError < -headingBuffer) {
+            customDrive(-slow, slow, slow, -slow);
         }
     }
 
