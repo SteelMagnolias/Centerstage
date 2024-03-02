@@ -91,9 +91,9 @@ public class OdoRed extends LinearOpMode {
     // auton step / action!
     int step = 0;
     int stackedStep = 0;
-    final double desiredDistance = 4;
+    final double desiredDistance = 3.5;
     double rangeError = -2;
-    double rangeBuffer = 1.25;
+    double rangeBuffer = 1.5;
     double headingError = -2;
     double headingBuffer = 1.5;
     double yawError = -2;
@@ -359,7 +359,6 @@ public class OdoRed extends LinearOpMode {
                         drive(0);
                         step++;
                     }
-                    drive(0);
                     apriltagTelemetry();
                     List<AprilTagDetection> currentDetections = aprilTag.getDetections();
                     if (numTagDet == 0){
@@ -371,7 +370,6 @@ public class OdoRed extends LinearOpMode {
                                 targetFound = true;
                                 tagWasSeen = true;
                                 desiredTag = detection;
-                                break;
                             } else {
                                 telemetry.addLine("Not the right tag");
                                 targetFound = false;
@@ -398,6 +396,8 @@ public class OdoRed extends LinearOpMode {
                             telemetry.addLine("lined up to tag");
                             step++;
                         }
+                    } else if (!tagWasSeen){
+                        strafe(-0.35);
                     } else {
                         if (OTID == 4 && desiredTagID == 5) {
                             strafe(-0.35);
@@ -405,20 +405,23 @@ public class OdoRed extends LinearOpMode {
                             strafe(0.35);
                         } else if ((OTID == 5 || OTID == 4) && desiredTagID == 6){
                             strafe(-0.35);
-                        } else if (!tagWasSeen){
-                            strafe(-0.35);
-                        } else{
+                        } else if (OTID == 6){
                             strafe(0.35);
+                        } else {
+                            drive(0);
                         }
                         telemetry.addLine("tag not found");
                     }
-
                     headingError = 0;
                     yawError = 0;
                     rangeError = 0;
+                    numTagDet =0;
+                    OTID = 0;
                     targetFound = false;
+                    telemetry.addData("other tag detected", OTID);
                     break;
                 case 12:// place pixel
+                    drive(0);
                     intakeClawLeft.setPower(-1);
                     sleep(450);
                     intakeClawLeft.setPower(0);

@@ -181,7 +181,6 @@ public class Drive extends OpMode {
         double r_trig2 = gamepad2.right_trigger;
         double l_trig2 = gamepad2.left_trigger;
         boolean back2 = gamepad2.back;
-        boolean guide2 = gamepad2.guide;
 
         // sensor readings
         //potentiometerVoltage = potentiometer.getVoltage();
@@ -379,7 +378,7 @@ public class Drive extends OpMode {
                     // move arm up
                     armPos = ArmState.ARM_UP;
                 }
-                else if (x2) {
+                else if (b2) {
                     // STOP!
                     armPos = ArmState.EMERGENCY;
                 }
@@ -409,10 +408,6 @@ public class Drive extends OpMode {
                     armPos = ArmState.ARM_DOWN;
                 }
                 else if (b2) {
-                    // move to tuck position
-                    armPos = ArmState.ARM_TUCK;
-                }
-                else if (x2) {
                     armPos = ArmState.EMERGENCY;
                 }
                 else if (back2) {
@@ -434,7 +429,7 @@ public class Drive extends OpMode {
                     // move to tuck position
                     armPos = ArmState.ARM_UP;
                 }
-                else if (x2) {
+                else if (b2) {
                     armPos = ArmState.EMERGENCY;
                 }
                 else if (back2) {
@@ -481,16 +476,12 @@ public class Drive extends OpMode {
                     // move to down position
                     armPos = ArmState.ARM_DOWN;
                 }
-                else if (x2) {
+                else if (b2) {
                     armPos = ArmState.EMERGENCY;
                 }
                 else if (y2) {
                     // move arm up
                     armPos = ArmState.ARM_UP;
-                }
-                else if (b2) {
-                    // TUCK!
-                    armPos = ArmState.ARM_TUCK;
                 }
 
                 /*
@@ -514,7 +505,7 @@ public class Drive extends OpMode {
             verticalArm2.setPower(0);
         }
 
-        if (guide2) { // reset in case of problem - press logitech logo
+        if (x2) { // reset in case of problem - press logitech logo
             wrist.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
