@@ -510,19 +510,19 @@ public class Drive extends OpMode {
             wrist.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
-        if (l_trig2 > 0.1) {
+        if (r_trig2 > 0.1) {
             intakeClawRight.setPower(1);
         }
-        else if (lb2) {
+        else if (rb2) {
             intakeClawRight.setPower(-1);
         }
         else {
             intakeClawRight.setPower(0);
         }
-        if (r_trig2 > 0.1) {
+        if (l_trig2 > 0.1) {
             intakeClawLeft.setPower(-1);
         }
-        else if (rb2) {
+        else if (lb2) {
             intakeClawLeft.setPower(1);
         }
         else {
